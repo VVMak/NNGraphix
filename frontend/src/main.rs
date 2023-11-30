@@ -30,7 +30,14 @@ struct Coordinates {
 #[function_component]
 fn Board() -> Html {
     let board: UseStateHandle<GBoard> = use_state(|| GBoard { blocks: vec![] });
-    let onkeypress = {
+    let mouse_position = use_state(|| Point{x: 0, y: 0});
+    let onmousemove = {
+        let mouse_position = mouse_position.clone();
+        Callback::from(move |event: MouseEvent| -> () {
+            mouse_position.set(Point { x: event.x(), y: event.y() })
+        })
+    };
+    let onkeydown = {
         let board = board.clone();
         Callback::from(move |event: KeyboardEvent| -> () {
             info!("Pressed {}", event.key());
@@ -40,13 +47,14 @@ fn Board() -> Html {
                     b.dragged = false;
                     b.chosen = false;
                 }
-                blocks.push(GBlock { center: Point{x: event.page_x(), y: event.page_y()}, dragged: true, chosen: true } );
+                info!("Mouse position {} {}", mouse_position.x, mouse_position.y);
+                blocks.push(GBlock { center: Point{x: mouse_position.x, y: mouse_position.y}, dragged: true, chosen: true } );
                 board.set(GBoard { blocks });
             }
         })
     };
     html!{
-        <div onkeypress={onkeypress}>
+        <div tabindex="0" onkeydown={onkeydown} onmousemove={onmousemove}>
             <svg width="1920" height="1080">
                 {board.blocks.iter().map(|block| {
                     html!{<Block x={block.center.x} y={block.center.y} dragged={block.dragged} chosen={block.chosen}/>}
