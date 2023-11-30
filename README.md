@@ -2,4 +2,4 @@
 
 ## Dev start
 
-Run `cargo tauri dev`
+Enter directory src-tauri and run `cargo tauri dev`
