@@ -1,6 +1,25 @@
 use yew::prelude::*;
+use log::info;
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Clone)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+#[derive(PartialEq, Clone)]
+struct GBlock {
+    center: Point,
+    dragged: bool,
+    chosen: bool,
+}
+
+#[derive(Clone)]
+struct GBoard {
+    blocks: std::vec::Vec<GBlock>,
+}
+
+#[derive(PartialEq, Properties, Clone)]
 struct Coordinates {
     x: i32,
     y: i32,
@@ -9,9 +28,37 @@ struct Coordinates {
 }
 
 #[function_component]
-fn Block() -> Html {
+fn Board() -> Html {
+    let board: UseStateHandle<GBoard> = use_state(|| GBoard { blocks: vec![] });
+    let onkeypress = {
+        let board = board.clone();
+        Callback::from(move |event: KeyboardEvent| -> () {
+            info!("Pressed {}", event.key());
+            if event.key() == "n" {
+                let mut blocks = board.blocks.clone();
+                for b in &mut blocks {
+                    b.dragged = false;
+                    b.chosen = false;
+                }
+                blocks.push(GBlock { center: Point{x: event.page_x(), y: event.page_y()}, dragged: true, chosen: true } );
+                board.set(GBoard { blocks });
+            }
+        })
+    };
+    html!{
+        <div onkeypress={onkeypress}>
+            <svg width="1920" height="1080">
+                {board.blocks.iter().map(|block| {
+                    html!{<Block x={block.center.x} y={block.center.y} dragged={block.dragged} chosen={block.chosen}/>}
+                }).collect::<Html>()}
+            </svg>
+        </div>
+    }
+}
 
-    let coordinates: UseStateHandle<Coordinates> = use_state(|| Coordinates {x: 0, y: 0, dragged: false, chosen: false});
+#[function_component]
+fn Block(coords: &Coordinates) -> Html {
+    let coordinates: UseStateHandle<Coordinates> = use_state(|| coords.clone());
     let onmousemove: Callback<MouseEvent> = {
         let coordinates: UseStateHandle<Coordinates> = coordinates.clone();
         Callback::from(move |event: MouseEvent| -> () {
@@ -28,7 +75,7 @@ fn Block() -> Html {
 
     let onmousedown: Callback<MouseEvent> = {
         let coordinates: UseStateHandle<Coordinates> = coordinates.clone();
-        Callback::from(move |event: MouseEvent| -> (){
+        Callback::from(move |_: MouseEvent| -> (){
             if coordinates.chosen == true {
                 coordinates.set(Coordinates {
                     x: coordinates.x,
@@ -42,7 +89,7 @@ fn Block() -> Html {
 
     let onmouseup: Callback<MouseEvent> = {
         let coordinates: UseStateHandle<Coordinates> = coordinates.clone();
-        Callback::from(move |event: MouseEvent| -> (){
+        Callback::from(move |_: MouseEvent| -> (){
             if coordinates.chosen == true {
                 coordinates.set(Coordinates {
                     x: coordinates.x,
@@ -56,7 +103,7 @@ fn Block() -> Html {
     
     let onmouseover: Callback<MouseEvent> = {
         let coordinates: UseStateHandle<Coordinates> = coordinates.clone();
-        Callback::from(move |event: MouseEvent| -> (){
+        Callback::from(move |_: MouseEvent| -> (){
             coordinates.set(Coordinates {
                 x: coordinates.x,
                 y: coordinates.y,
@@ -68,7 +115,7 @@ fn Block() -> Html {
 
     let onmouseout: Callback<MouseEvent> = {
         let coordinates: UseStateHandle<Coordinates> = coordinates.clone();
-        Callback::from(move |event: MouseEvent| -> (){
+        Callback::from(move |_: MouseEvent| -> (){
             coordinates.set(Coordinates {
                 x: coordinates.x,
                 y: coordinates.y,
@@ -92,18 +139,29 @@ fn Block() -> Html {
     }
 }
 
+// #[function_component(App)]
+// fn app() -> Html {
+//     html! {
+//         <>
+//         <svg width="1920" height="1080">
+//         <Block />
+//         <Block />
+//         </svg>
+//         </>
+//     }
+// }
+
+
 #[function_component(App)]
 fn app() -> Html {
     html! {
         <>
-        <svg width="1920" height="1080">
-        <Block />
-        <Block />
-        </svg>
+        <Board />
         </>
     }
 }
 
 fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<App>::new().render();
 }
