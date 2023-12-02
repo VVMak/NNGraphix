@@ -1,17 +1,13 @@
 mod block;
+mod coords;
 mod message;
 
 use yew::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 use block::{Block, BlockId};
+use coords::Coords;
 use message::Msg;
-
-#[derive(PartialEq, Clone, Debug, Default)]
-pub struct Coords {
-    x: i32,
-    y: i32,
-}
 
 
 #[derive(PartialEq, Properties)]
@@ -37,7 +33,8 @@ impl Board {
             <g
             onmousedown={onmousedown}
             >
-            <rect x={(block.center.x - 75).to_string()} y={(block.center.y - 75).to_string()} rx="20" ry="20" width="150" height="150"
+            <rect x={block.upper_left.x.to_string()} y={block.upper_left.y.to_string()}
+            rx="20" ry="20" width={Block::def_width().to_string()} height={Block::def_height().to_string()}
             style="fill:red;stroke:black;stroke-width:5;opacity:0.5"/>
             </g>
         }
@@ -79,10 +76,11 @@ impl Component for Board {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MouseMove(coords) => {
-                self.mouse_position = coords;
+                let delta = coords - self.mouse_position.clone();
+                self.mouse_position += delta.clone();
                 if self.drugging {
                     for id in &self.selected {
-                        self.blocks.get_mut(id).unwrap().center = self.mouse_position.clone();
+                        self.blocks.get_mut(id).unwrap().upper_left += delta.clone();
                     }
                 };
                 self.drugging
@@ -100,7 +98,7 @@ impl Component for Board {
             Msg::KeyDown(key) => {
                 if key == "n" {
                     let id = self.block_id_gen.next().unwrap();
-                    self.blocks.insert(id, Block { id: id, center: self.mouse_position.clone() });
+                    self.blocks.insert(id, Block { id: id, upper_left: self.mouse_position.clone() - Coords { x: Block::def_width() / 2, y: Block::def_height() / 2 } });
                     self.selected.clear();
                     true
                 } else {

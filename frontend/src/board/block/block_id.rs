@@ -10,7 +10,7 @@ impl Iterator for BlockIdGenerator {
     type Item = BlockId;
 
     fn next(&mut self) -> Option<Self::Item> {
-       self.last += 1;
-       Some(self.last)
+        self.last += 1;
+        Some(self.last)
     }
 }
