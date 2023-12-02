@@ -1,7 +1,6 @@
 mod block;
 mod message;
 
-use log::info;
 use yew::prelude::*;
 use std::collections::{HashMap, HashSet};
 
@@ -93,7 +92,6 @@ impl Component for Board {
                 false
             },
             Msg::MouseLeftDownBlock(id) => {
-                info!("Block click");
                 self.drugging = true;
                 self.selected.clear();
                 self.selected.insert(id);
