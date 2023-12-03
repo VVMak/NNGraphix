@@ -1,7 +1,9 @@
+use super::{BlockId, Coords};
+
 pub enum Msg {
-    MouseMove(super::Coords),
+    MouseMove(Coords),
     MouseLeftUp,
-    MouseLeftDownBlock(super::BlockId),
+    MouseLeftDownBlock(BlockId),
     // maybe we should change it to key codes for simpler matching
     KeyDown(String),
 }
