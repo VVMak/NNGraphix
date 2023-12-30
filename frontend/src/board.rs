@@ -65,7 +65,7 @@ impl Component for Board {
             |e: MouseEvent| Msg::MouseMove(Coords { x: e.client_x(), y: e.client_y() })
         );
         let onkeydown = ctx.link().callback(
-            |e: KeyboardEvent| Msg::KeyDown(e.key())
+            |e: KeyboardEvent| Msg::KeyDown(e)
         );
         let onmouseup = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftUp);
         html!{
@@ -105,8 +105,8 @@ impl Component for Board {
                 self.select_block(id);
                 true
             },
-            Msg::KeyDown(key) => {
-                match key.as_str() {
+            Msg::KeyDown(event) => {
+                match event.key().as_str() {
                     "n" => {
                         let id = self.block_id_gen.next().unwrap();
                         self.blocks.insert(id, Block::new(id, self.mouse_position.clone()));

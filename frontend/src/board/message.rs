@@ -1,3 +1,5 @@
+use yew::KeyboardEvent;
+
 use super::{BlockId, Coords};
 
 pub enum Msg {
@@ -5,5 +7,5 @@ pub enum Msg {
     MouseLeftUp,
     MouseLeftDownBlock(BlockId),
     // maybe we should change it to key codes for simpler matching
-    KeyDown(String),
+    KeyDown(KeyboardEvent),
 }
