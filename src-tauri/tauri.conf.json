@@ -2,8 +2,9 @@
   "build": {
     "beforeBuildCommand": "cd frontend && trunk build",
     "beforeDevCommand": "cd frontend && trunk serve",
-    "devPath": "http://localhost:8080",
-    "distDir": "../frontend/dist"
+    "devPath": "http://127.0.0.1:8080",
+    "distDir": "../frontend/dist",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "NNGraphix",
