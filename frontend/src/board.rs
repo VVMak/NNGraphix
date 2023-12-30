@@ -106,13 +106,21 @@ impl Component for Board {
                 true
             },
             Msg::KeyDown(key) => {
-                if key == "n" {
-                    let id = self.block_id_gen.next().unwrap();
-                    self.blocks.insert(id, Block::new(id, self.mouse_position.clone()));
-                    self.clear_selection();
-                    true
-                } else {
-                    false
+                match key.as_str() {
+                    "n" => {
+                        let id = self.block_id_gen.next().unwrap();
+                        self.blocks.insert(id, Block::new(id, self.mouse_position.clone()));
+                        self.clear_selection();
+                        true
+                    }
+                    "Delete" => {
+                        for id in &self.selected {
+                            self.blocks.remove(&id);
+                        }
+                        self.selected.clear();
+                        true
+                    }
+                    _ => false
                 }
             },
         }
