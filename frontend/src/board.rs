@@ -23,7 +23,7 @@ pub struct Board {
 }
 
 impl Board {
-    fn create_block(&self, block: &Block, ctx: &Context<Self>) -> Html {
+    fn create_block_html(&self, block: &Block, ctx: &Context<Self>) -> Html {
         let id = block.id.clone();
         let onmousedown: Callback<MouseEvent> = ctx.link().callback(move |e: MouseEvent| {
             e.stop_immediate_propagation();
@@ -33,11 +33,21 @@ impl Board {
             <g
             onmousedown={onmousedown}
             >
-            <rect x={block.upper_left.x.to_string()} y={block.upper_left.y.to_string()}
-            rx="20" ry="20" width={Block::def_width().to_string()} height={Block::def_height().to_string()}
-            style="fill:red;stroke:black;stroke-width:5;opacity:0.5"/>
+            {block.get_rect_html()}
             </g>
         }
+    }
+
+    fn select_block(&mut self, block_id: BlockId) {
+        self.selected.insert(block_id);
+        self.blocks.get_mut(&block_id).unwrap().select();
+    }
+
+    fn clear_selection(&mut self) {
+        for block_id in &self.selected {
+            self.blocks.get_mut(block_id).unwrap().unselect();
+        }
+        self.selected.clear();
     }
 }
 
@@ -66,7 +76,7 @@ impl Component for Board {
             >
                 <svg width="1920" height="1080">
                     { self.blocks.iter().map(|(_, block)| {
-                        self.create_block(&block, ctx)
+                        self.create_block_html(&block, ctx)
                     }).collect::<Html>()}
                 </svg>
             </div>
@@ -91,15 +101,15 @@ impl Component for Board {
             },
             Msg::MouseLeftDownBlock(id) => {
                 self.drugging = true;
-                self.selected.clear();
-                self.selected.insert(id);
-                false
+                self.clear_selection();
+                self.select_block(id);
+                true
             },
             Msg::KeyDown(key) => {
                 if key == "n" {
                     let id = self.block_id_gen.next().unwrap();
-                    self.blocks.insert(id, Block { id: id, upper_left: self.mouse_position.clone() - Coords { x: Block::def_width() / 2, y: Block::def_height() / 2 } });
-                    self.selected.clear();
+                    self.blocks.insert(id, Block::new(id, self.mouse_position.clone()));
+                    self.clear_selection();
                     true
                 } else {
                     false
