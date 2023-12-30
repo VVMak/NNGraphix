@@ -64,9 +64,7 @@ impl Component for Board {
         let onmousemove = ctx.link().callback(
             |e: MouseEvent| Msg::MouseMove(Coords { x: e.client_x(), y: e.client_y() })
         );
-        let onkeydown = ctx.link().callback(
-            |e: KeyboardEvent| Msg::KeyDown(e)
-        );
+        let onkeydown = ctx.link().callback(Msg::KeyDown);
         let onmouseup = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftUp);
         html!{
             <div tabindex="0"
