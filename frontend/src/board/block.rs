@@ -1,7 +1,5 @@
 mod block_id;
 
-use std::fmt::format;
-
 pub use block_id::{BlockId, BlockIdGenerator};
 use yew::prelude::{Html, html};
 
