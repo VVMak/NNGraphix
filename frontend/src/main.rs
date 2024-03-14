@@ -1,6 +1,7 @@
 use yew::prelude::*;
 
 mod board;
+mod tools;
 
 
 #[function_component(App)]
