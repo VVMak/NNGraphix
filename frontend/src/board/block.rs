@@ -1,27 +1,27 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-use super::tools;
 use yew::prelude::{Html, html};
 
 use super::Coords;
-use super::arrow::ControlPoint;
+use super::arrow;
 
-type Id = tools::Id;
+pub type Id = super::tools::Id;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Block {
-    pub id: tools::Id,
+    pub id: Id,
     pub upper_left: Coords,
-    next: HashMap<tools::Id, tools::Id>, // TODO: сделать хэшмапой из блоков в id стрелки
-    prev: HashMap<tools::Id, tools::Id>,
+    pub next: HashMap<Id, arrow::Id>,
+    pub prev: HashMap<Id, arrow::Id>,
     selected: bool,
 }
 
 const BLOCK_WIDTH: i32 = 150;
 const BLOCK_HEIGHT: i32 = 150;
+const CONTROL_POINT_VECTOR_LENGTH: i32 = BLOCK_WIDTH / 2;
 
 impl Block {
-    pub fn new(id: tools::Id, center: Coords) -> Block {
+    pub fn new(id: Id, center: Coords) -> Block {
         Block { id, upper_left: center - Coords { x: BLOCK_WIDTH / 2, y: BLOCK_HEIGHT / 2 },
                 next: HashMap::new(), prev: HashMap::new(), selected: false }
     }
@@ -36,37 +36,30 @@ impl Block {
         }
     }
 
-    pub fn get_control_point_out(&self) -> ControlPoint {
-        ControlPoint {
+    pub fn get_control_point_out(&self) -> arrow::ControlPoint {
+        arrow::ControlPoint {
             point: self.upper_left.clone() + Coords { x: BLOCK_WIDTH, y: BLOCK_HEIGHT / 2 },
-            vector: Coords { x: BLOCK_HEIGHT, y: 0 }
+            vector: Coords { x: CONTROL_POINT_VECTOR_LENGTH, y: 0 }
         }
     }
-    pub fn get_control_point_in(&self) -> ControlPoint {
-        ControlPoint {
+    pub fn get_control_point_in(&self) -> arrow::ControlPoint {
+        arrow::ControlPoint {
             point: self.upper_left.clone() + Coords { x: 0, y: BLOCK_HEIGHT / 2 },
-            vector: Coords { x: -BLOCK_HEIGHT, y: 0 }
+            vector: Coords { x: -CONTROL_POINT_VECTOR_LENGTH, y: 0 }
         }
     }
 
-    pub fn add_next(&mut self, block_id: tools::Id, arrow_id: tools::Id) {
+    pub fn add_next(&mut self, block_id: Id, arrow_id: arrow::Id) {
         self.next.insert(block_id, arrow_id);
     }
-    pub fn remove_next(&mut self, block_id: tools::Id) {
-        self.next.remove(&block_id);
+    pub fn remove_next(&mut self, block_id: &Id) -> Option<arrow::Id> {
+        self.next.remove(block_id)
     }
-    pub fn add_prev(&mut self, block_id: tools::Id, arrow_id: tools::Id) {
+    pub fn add_prev(&mut self, block_id: Id, arrow_id: arrow::Id) {
         self.prev.insert(block_id, arrow_id);
     }
-    pub fn remove_prev(&mut self, block_id: tools::Id) {
-        self.prev.remove(&block_id);
-    }
-
-    pub fn arrows_nexts(&self) -> HashSet<&tools::Id> {
-        self.next.values().collect()
-    }
-    pub fn arrows_prevs(&self) -> HashSet<&tools::Id> {
-        self.prev.values().collect()
+    pub fn remove_prev(&mut self, block_id: &Id) -> Option<arrow::Id> {
+        self.prev.remove(block_id)
     }
 
     fn get_style(&self) -> String {

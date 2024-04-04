@@ -1,21 +1,23 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 
 use yew::{Html, html};
 
-use super::block::Block;
-use super::tools;
+use super::block;
+use block::Block;
 use super::Coords;
 
+pub type Id = super::tools::Id;
+
 pub struct Arrow {
-    pub id: tools::Id,
-    pub start_id: tools::Id,
-    pub end_id: tools::Id,
+    pub id: Id,
+    pub start_id: block::Id,
+    pub end_id: block::Id,
 }
 
 impl Arrow {
-    pub fn create_html(&self, blocks: &HashMap<tools::Id, Block>) -> Html {
-        let start = blocks[&self.start_id].get_control_point_out();
-        let end = blocks[&self.end_id].get_control_point_in();
+    pub fn create_html(&self, blocks: &HashMap<block::Id, RefCell<Block>>) -> Html {
+        let start = blocks[&self.start_id].borrow().get_control_point_out();
+        let end = blocks[&self.end_id].borrow().get_control_point_in();
         let path_content = format!("M {} C {}, {}, {}",
                 display_coords_path(&start.point),
                 display_coords_path(&(start.point.clone() + start.vector.clone())),
