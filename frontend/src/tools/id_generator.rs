@@ -1,13 +1,13 @@
-pub type BlockId = i64;
+pub type Id = i64;
 
 // for now it's stupid and now async- or thread- safe
 #[derive(Default)]
-pub struct BlockIdGenerator {
-    last: BlockId,
+pub struct IdGenerator {
+    last: Id,
 }
 
-impl Iterator for BlockIdGenerator {
-    type Item = BlockId;
+impl Iterator for IdGenerator {
+    type Item = Id;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.last += 1;
