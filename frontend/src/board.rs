@@ -38,9 +38,14 @@ impl Board {
         self.graph.get_block(&block_id).unwrap().select();
     }
 
+    fn deselect_block(&mut self, block_id: &block::Id) {
+        self.selected.remove(block_id);
+        self.graph.get_block(block_id).unwrap().deselect();
+    }
+
     fn clear_selection(&mut self) {
         for block_id in &self.selected {
-            self.graph.get_block(block_id).unwrap().unselect();
+            self.graph.get_block(block_id).unwrap().deselect();
         }
         self.selected.clear();
     }
@@ -93,7 +98,7 @@ impl Component for Board {
                 self.set_state(State::Basic);
                 false
             },
-            Msg::MouseLeftDownBlock(id) => match self.state {
+            Msg::MouseLeftDownBlock(e, id) => match self.state {
                 State::ArrowCreation => {
                     self.set_state(State::Basic);
                     for start_id in self.selected.clone() {
@@ -103,8 +108,14 @@ impl Component for Board {
                 }
                 State::Basic => {
                     self.set_state(State::DraggingSelection);
-                    self.clear_selection();
-                    self.select_block(id);
+                    if !e.ctrl_key() {
+                        self.clear_selection();
+                    }
+                    if self.selected.contains(&id) {
+                        self.deselect_block(&id);
+                    } else {
+                        self.select_block(id);
+                    }
                     true
                 }
                 _ => false

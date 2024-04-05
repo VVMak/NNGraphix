@@ -21,7 +21,7 @@ impl Graph {
         let id = block.id.clone();
         let onmousedown: Callback<MouseEvent> = scope.callback(move |e: MouseEvent| {
             e.stop_immediate_propagation();
-            Msg::MouseLeftDownBlock(id)
+            Msg::MouseLeftDownBlock(e, id)
         });
         html! {
             <g
