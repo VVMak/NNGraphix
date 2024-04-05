@@ -26,7 +26,7 @@ impl Block {
                 next: HashMap::new(), prev: HashMap::new(), selected: false }
     }
     pub fn select(&mut self) { self.selected = true; }
-    pub fn unselect(&mut self) { self.selected = false; }
+    pub fn deselect(&mut self) { self.selected = false; }
     pub fn get_rect_html(&self) -> Html {
         let style = self.get_style();
         html!{

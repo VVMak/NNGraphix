@@ -1,11 +1,11 @@
-use yew::KeyboardEvent;
+use yew::{KeyboardEvent, MouseEvent};
 
 use super::{tools, Coords};
 
 pub enum Msg {
     MouseMove(Coords),
     MouseLeftUp,
-    MouseLeftDownBlock(tools::Id),
+    MouseLeftDownBlock(MouseEvent, tools::Id),
     // maybe we should change it to key codes for simpler matching
     KeyDown(KeyboardEvent),
 }
