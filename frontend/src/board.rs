@@ -66,10 +66,12 @@ impl Component for Board {
         );
         let onkeydown = ctx.link().callback(Msg::KeyDown);
         let onmouseup = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftUp);
+        let onmousedown = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftDownOutsideOfBlock);
         html!{
             <div tabindex="0"
             onkeydown={onkeydown}
             onmousemove={onmousemove}
+            onmousedown={onmousedown}
             onmouseup={onmouseup}
             >
                 <svg width="1920" height="1080">
@@ -97,6 +99,10 @@ impl Component for Board {
             Msg::MouseLeftUp => {
                 self.set_state(State::Basic);
                 false
+            },
+            Msg::MouseLeftDownOutsideOfBlock => {
+                self.clear_selection();
+                true
             },
             Msg::MouseLeftDownBlock(e, id) => match self.state {
                 State::ArrowCreation => {
