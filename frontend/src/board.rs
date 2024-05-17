@@ -23,9 +23,9 @@ pub struct Props;
 #[derive(Derivative)]
 #[derivative(Default)]
 pub struct Board {
-    #[derivative(Default(value = "2000.0"))]
+    #[derivative(Default(value = "4000.0"))]
     width: f64,
-    #[derivative(Default(value = "2000.0"))]
+    #[derivative(Default(value = "4000.0"))]
     height: f64,
     #[derivative(Default(value = "0.0"))]
     origin_x: f64,
@@ -72,6 +72,7 @@ impl Board {
         self.origin_y = self.origin_y + delta_y / 20.0;
         log::info!("Origin position {x}, {y}", x=self.origin_x, y=self.origin_y);
     }
+
 }
 
 impl Component for Board {
@@ -89,7 +90,7 @@ impl Component for Board {
         );
         let onkeydown = ctx.link().callback(Msg::KeyDown);
         let onmouseup = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftUp);
-        let onmousedown = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftDownOutsideOfBlock);
+        let onmousedown = ctx.link().callback(|e: MouseEvent| Msg::MouseLeftDownOutsideOfBlock(e));
         let onwheel = ctx.link().callback(|e: WheelEvent| Msg::MouseWheelScale(e));
         let view_box_str = format!("{origin_x}, {origin_y}, {width}, {height}",
                                             origin_x=self.origin_x,
@@ -104,7 +105,7 @@ impl Component for Board {
             onmouseup={onmouseup}
             onwheel={onwheel}
             >
-                <svg width = "2000.0" height = "2000.0" viewBox={view_box_str} xmlns="http://www.w3.org/2000/svg">
+                <svg width = "4000.0" height = "4000.0" viewBox={view_box_str} xmlns="http://www.w3.org/2000/svg">
                     { self.graph.html(ctx.link()) }
                 </svg>
             </div>
@@ -115,16 +116,22 @@ impl Component for Board {
         match msg {
             Msg::MouseMove(coords) => {
                 let delta = Coords {
-                    x:  coords.x * (self.width / 2000.0) - self.mouse_position.clone().x + Coords {x: self.origin_x, y: self.origin_y}.x,
-                    y:  coords.y * (self.width / 2000.0) - self.mouse_position.clone().y + Coords {x: self.origin_x, y: self.origin_y}.y
+                    x:  coords.x * (self.width / 4000.0) - self.mouse_position.clone().x + self.origin_x,
+                    y:  coords.y * (self.width / 4000.0) - self.mouse_position.clone().y + self.origin_y
                 };
                 self.mouse_position += delta.clone();
-                log::info!("Current mouse position {x}, {y}", x=self.mouse_position.x, y=self.mouse_position.y);
                 match self.state {
                     State::DraggingSelection => {
                         for id in &self.selected {
                             self.graph.get_block(id).unwrap().upper_left += delta.clone();
                         }
+                        true
+                    },
+                    State::DraggingBoard => {
+                        self.origin_x -= delta.clone().x;
+                        self.origin_y -= delta.clone().y;
+                        log::info!("Current mouse position {x}, {y}", x=self.mouse_position.clone().x, y=self.mouse_position.y);
+                        log::info!("Origin position {x}, {y}", x=self.origin_x, y=self.origin_y);
                         true
                     }
                     _ => false
@@ -137,10 +144,18 @@ impl Component for Board {
             Msg::MouseWheelScale(e) => {
                 self.scale_board(e.delta_y());
                 true
-            }
-            Msg::MouseLeftDownOutsideOfBlock => {
-                self.clear_selection();
-                true
+            },
+            Msg::MouseLeftDownOutsideOfBlock(e) => match e.button()  {
+                0 => { // left button click
+                    self.clear_selection();
+                    true
+                },
+                1 => { // middle button click
+                    log::info!("Clicked middle button");
+                    self.set_state(State::DraggingBoard);
+                    true
+                },
+                _another_button => false
             },
             Msg::MouseLeftDownBlock(e, id) => match self.state {
                 State::ArrowCreation => {
