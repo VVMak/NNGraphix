@@ -37,6 +37,16 @@ impl Graph {
     pub fn html(&self, scope: &Scope<super::Board>) -> Html {
         html!{
             <>
+                <defs>
+                <pattern id="smallGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                <path d="M 8 0 L 0 0 0 8" fill="none" stroke="gray" stroke-width="0.5"/>
+                </pattern>
+                <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+                <rect width="80" height="80" fill="url(#smallGrid)"/>
+                <path d="M 80 0 L 0 0 0 80" fill="none" stroke="gray" stroke-width="1"/>
+                </pattern>
+                </defs> 
+                <rect width="100%" height="100%" x="-1000" y="-1000" fill="url(#grid)" />
                 { self.arrows.iter().map(|(_, arrow)| {
                     self.create_arrow_html(arrow)
                 }).collect::<Html>()}
@@ -47,9 +57,9 @@ impl Graph {
         }
     }
     
-    pub fn create_block(&mut self, coords: Coords) -> tools::Id {
+    pub fn create_block(&mut self, coords: Coords, origin: Coords) -> tools::Id {
         let id = self.block_id_gen.next().unwrap();
-        self.blocks.insert(id, Block::new(id, coords).into());
+        self.blocks.insert(id, Block::new(id, coords, origin).into());
         id
     }
     pub fn remove_block(&mut self, id: &block::Id) {

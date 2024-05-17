@@ -1,7 +1,7 @@
-#[derive(PartialEq, Clone, Debug, Default, Hash)]
+#[derive(PartialEq, Clone, Debug, Default)]
 pub struct Coords {
-    pub x: i32,
-    pub y: i32,
+    pub x: f64,
+    pub y: f64,
 }
 
 // maybe need to add implementations with references (e.g. AddAssign<&Self>)

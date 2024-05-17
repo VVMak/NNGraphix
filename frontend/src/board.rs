@@ -8,6 +8,7 @@ mod state;
 use log::info;
 use yew::prelude::*;
 use std::collections::HashSet;
+use derivative::Derivative;
 
 use super::tools;
 use coords::Coords;
@@ -19,8 +20,19 @@ use state::State;
 #[derive(PartialEq, Properties)]
 pub struct Props;
 
-#[derive(Default)]
+#[derive(Derivative)]
+#[derivative(Default)]
 pub struct Board {
+    #[derivative(Default(value = "2000.0"))]
+    width: f64,
+    #[derivative(Default(value = "2000.0"))]
+    height: f64,
+    #[derivative(Default(value = "0.0"))]
+    origin_x: f64,
+    #[derivative(Default(value = "0.0"))]
+    origin_y: f64,
+    _window_width: f64,
+    _window_height: f64,
     graph: Graph,
     selected: HashSet<block::Id>,
     state: State,
@@ -49,6 +61,17 @@ impl Board {
         }
         self.selected.clear();
     }
+
+    fn scale_board(&mut self, scale_value: f64) {
+        log::info!("Board got scaled by {}", scale_value); // new_scale_value = 125.0 or -125.0 (250.0 maybe) depending on wheel direction
+        self.width  = self.width + scale_value / 5.0; // you can change 5.0 if you want; the higher the number the slower the board scales
+        self.height = self.width;
+        let delta_x = self.mouse_position.x - (self.origin_x + 1920.0 / 2.0); // Here we need to use window size somehow TODO
+        let delta_y = self.mouse_position.y - (self.origin_y + 1080.0 / 2.0); // Here we need to use window size somehow TODO
+        self.origin_x = self.origin_x + delta_x / 20.0;
+        self.origin_y = self.origin_y + delta_y / 20.0;
+        log::info!("Origin position {x}, {y}", x=self.origin_x, y=self.origin_y);
+    }
 }
 
 impl Component for Board {
@@ -62,19 +85,26 @@ impl Component for Board {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onmousemove = ctx.link().callback(
-            |e: MouseEvent| Msg::MouseMove(Coords { x: e.client_x(), y: e.client_y() })
+|e: MouseEvent| Msg::MouseMove(Coords { x: e.client_x() as f64, y: e.client_y() as f64})
         );
         let onkeydown = ctx.link().callback(Msg::KeyDown);
         let onmouseup = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftUp);
         let onmousedown = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftDownOutsideOfBlock);
+        let onwheel = ctx.link().callback(|e: WheelEvent| Msg::MouseWheelScale(e));
+        let view_box_str = format!("{origin_x}, {origin_y}, {width}, {height}",
+                                            origin_x=self.origin_x,
+                                            origin_y=self.origin_y,
+                                            width=self.width,
+                                            height=self.height);
         html!{
             <div tabindex="0"
             onkeydown={onkeydown}
             onmousemove={onmousemove}
             onmousedown={onmousedown}
             onmouseup={onmouseup}
+            onwheel={onwheel}
             >
-                <svg width="1920" height="1080">
+                <svg width = "2000.0" height = "2000.0" viewBox={view_box_str} xmlns="http://www.w3.org/2000/svg">
                     { self.graph.html(ctx.link()) }
                 </svg>
             </div>
@@ -84,8 +114,12 @@ impl Component for Board {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MouseMove(coords) => {
-                let delta = coords - self.mouse_position.clone();
+                let delta = Coords {
+                    x:  coords.x * (self.width / 2000.0) - self.mouse_position.clone().x + Coords {x: self.origin_x, y: self.origin_y}.x,
+                    y:  coords.y * (self.width / 2000.0) - self.mouse_position.clone().y + Coords {x: self.origin_x, y: self.origin_y}.y
+                };
                 self.mouse_position += delta.clone();
+                log::info!("Current mouse position {x}, {y}", x=self.mouse_position.x, y=self.mouse_position.y);
                 match self.state {
                     State::DraggingSelection => {
                         for id in &self.selected {
@@ -100,6 +134,10 @@ impl Component for Board {
                 self.set_state(State::Basic);
                 false
             },
+            Msg::MouseWheelScale(e) => {
+                self.scale_board(e.delta_y());
+                true
+            }
             Msg::MouseLeftDownOutsideOfBlock => {
                 self.clear_selection();
                 true
@@ -134,7 +172,7 @@ impl Component for Board {
                             false
                         }
                         "n" => {
-                            self.graph.create_block(self.mouse_position.clone());
+                            self.graph.create_block(self.mouse_position.clone(), Coords {x: self.origin_x,  y: self.origin_y});
                             self.clear_selection();
                             true
                         }
