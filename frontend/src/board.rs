@@ -31,6 +31,8 @@ pub struct Board {
     origin_x: f64,
     #[derivative(Default(value = "0.0"))]
     origin_y: f64,
+    #[derivative(Default(value = "false"))]
+    click_over_block: bool,
     _window_width: f64,
     _window_height: f64,
     graph: Graph,
@@ -91,6 +93,7 @@ impl Component for Board {
         let onkeydown = ctx.link().callback(Msg::KeyDown);
         let onmouseup = ctx.link().callback(|_: MouseEvent| Msg::MouseLeftUp);
         let onmousedown = ctx.link().callback(|e: MouseEvent| Msg::MouseLeftDownOutsideOfBlock(e));
+        let onclick = ctx.link().callback(|e: MouseEvent| Msg::MouseClick(e));
         let onwheel = ctx.link().callback(|e: WheelEvent| Msg::MouseWheelScale(e));
         let view_box_str = format!("{origin_x}, {origin_y}, {width}, {height}",
                                             origin_x=self.origin_x,
@@ -102,6 +105,7 @@ impl Component for Board {
             onkeydown={onkeydown}
             onmousemove={onmousemove}
             onmousedown={onmousedown}
+            onclick={onclick}
             onmouseup={onmouseup}
             onwheel={onwheel}
             >
@@ -116,10 +120,11 @@ impl Component for Board {
         match msg {
             Msg::MouseMove(coords) => {
                 let delta = Coords {
-                    x:  coords.x * (self.width / 4000.0) - self.mouse_position.clone().x + self.origin_x,
-                    y:  coords.y * (self.width / 4000.0) - self.mouse_position.clone().y + self.origin_y
+                    x:  coords.x.clone() * (self.width / 4000.0) + self.origin_x.clone() - self.mouse_position.clone().x,
+                    y:  coords.y.clone() * (self.width / 4000.0) + self.origin_y.clone() - self.mouse_position.clone().y
                 };
-                self.mouse_position += delta.clone();
+                self.mouse_position.x = coords.x * (self.width / 4000.0) + self.origin_x;
+                self.mouse_position.y = coords.y * (self.width / 4000.0) + self.origin_y;
                 match self.state {
                     State::DraggingSelection => {
                         for id in &self.selected {
@@ -130,8 +135,8 @@ impl Component for Board {
                     State::DraggingBoard => {
                         self.origin_x -= delta.clone().x;
                         self.origin_y -= delta.clone().y;
-                        log::info!("Current mouse position {x}, {y}", x=self.mouse_position.clone().x, y=self.mouse_position.y);
-                        log::info!("Origin position {x}, {y}", x=self.origin_x, y=self.origin_y);
+                        self.mouse_position.x -= delta.clone().x;
+                        self.mouse_position.y -= delta.clone().y;
                         true
                     }
                     _ => false
@@ -145,13 +150,22 @@ impl Component for Board {
                 self.scale_board(e.delta_y());
                 true
             },
-            Msg::MouseLeftDownOutsideOfBlock(e) => match e.button()  {
+            Msg::MouseClick(e) => match e.button()  {
                 0 => { // left button click
-                    self.clear_selection();
-                    true
+                    if !self.click_over_block {
+                        self.clear_selection();
+                        true
+                    }
+                    else {
+                        self.click_over_block = false;
+                        false
+                    }
                 },
+                _another_button => false
+            }
+            Msg::MouseLeftDownOutsideOfBlock(e) => match e.button()  {
                 1 => { // middle button click
-                    log::info!("Clicked middle button");
+                    log::info!("Holding middle button");
                     self.set_state(State::DraggingBoard);
                     true
                 },
@@ -166,6 +180,7 @@ impl Component for Board {
                     true
                 }
                 State::Basic => {
+                    self.click_over_block = true;
                     self.set_state(State::DraggingSelection);
                     if !e.ctrl_key() {
                         self.clear_selection();

@@ -6,6 +6,7 @@ pub enum Msg {
     MouseMove(Coords),
     MouseLeftUp,
     MouseWheelScale(WheelEvent),
+    MouseClick(MouseEvent),
     MouseLeftDownOutsideOfBlock(MouseEvent),
     MouseLeftDownBlock(MouseEvent, tools::Id),
     // maybe we should change it to key codes for simpler matching
