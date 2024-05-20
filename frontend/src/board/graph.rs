@@ -2,8 +2,8 @@ use super::arrow;
 use arrow::Arrow;
 use super::block;
 use block::Block;
-use super::coords::Coords;
-use super::message::Msg;
+use super::vector::Vector;
+use super::event::Event;
 use super::tools;
 use std::{cell::{Ref, RefCell, RefMut}, collections::HashMap};
 use yew::{html, Html, html::Scope, prelude::*};
@@ -21,7 +21,7 @@ impl Graph {
         let id = block.id.clone();
         let onmousedown: Callback<MouseEvent> = scope.callback(move |e: MouseEvent| {
             e.stop_immediate_propagation();
-            Msg::MouseLeftDownBlock(e, id)
+            Event::MouseDownBlock(e, id)
         });
         html! {
             <g
@@ -57,9 +57,9 @@ impl Graph {
         }
     }
     
-    pub fn create_block(&mut self, coords: Coords, origin: Coords) -> tools::Id {
+    pub fn create_block(&mut self, vector: Vector) -> tools::Id {
         let id = self.block_id_gen.next().unwrap();
-        self.blocks.insert(id, Block::new(id, coords, origin).into());
+        self.blocks.insert(id, Block::new(id, vector).into());
         id
     }
     pub fn remove_block(&mut self, id: &block::Id) {

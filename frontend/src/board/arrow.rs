@@ -4,7 +4,7 @@ use yew::{Html, html};
 
 use super::block;
 use block::Block;
-use super::Coords;
+use super::Vector;
 
 pub type Id = super::tools::Id;
 
@@ -41,15 +41,15 @@ impl PartialEq for Arrow {
 impl Eq for Arrow {}
 
 pub struct ControlPoint {
-    pub point: Coords,
-    pub vector: Coords,
+    pub point: Vector,
+    pub vector: Vector,
 }
 
-fn display_coords_path(coords: &Coords) -> String {
+fn display_coords_path(coords: &Vector) -> String {
     format!("{} {}", coords.x, coords.y)
 }
 
-fn display_coords_poly(coords: &Coords) -> String {
+fn display_coords_poly(coords: &Vector) -> String {
     format!("{},{}", coords.x, coords.y)
 }
 
@@ -59,8 +59,8 @@ const TR_DY: f64 = TR_DX * 0.5774;
 fn triangle_html(cp: &ControlPoint) -> Html {
     // TODO: this triangle ending works only with horizontal and long enough 'end' control vector
     let polygon_points = format!("{} {} {}",
-            display_coords_poly(&(cp.point.clone() - Coords { x: TR_DX, y: TR_DY })),
-            display_coords_poly(&(cp.point.clone() - Coords { x: TR_DX, y: -TR_DY })),
+            display_coords_poly(&(cp.point.clone() - Vector { x: TR_DX, y: TR_DY })),
+            display_coords_poly(&(cp.point.clone() - Vector { x: TR_DX, y: -TR_DY })),
             display_coords_poly(&cp.point),
     );
     html!{

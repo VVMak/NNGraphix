@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use yew::prelude::{Html, html};
 
-use super::Coords;
+use super::Vector;
 use super::arrow;
 
 pub type Id = super::tools::Id;
@@ -10,8 +10,7 @@ pub type Id = super::tools::Id;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Block {
     pub id: Id,
-    pub upper_left: Coords,
-    pub origin: Coords,
+    pub upper_left: Vector,
     pub next: HashMap<Id, arrow::Id>,
     pub prev: HashMap<Id, arrow::Id>,
     selected: bool,
@@ -22,8 +21,8 @@ const BLOCK_HEIGHT: f64 = 150.0;
 const CONTROL_POINT_VECTOR_LENGTH: f64 = BLOCK_WIDTH / 2.0;
 
 impl Block {
-    pub fn new(id: Id, center: Coords, origin: Coords) -> Block {
-        Block { id, upper_left: center - Coords { x: BLOCK_WIDTH / 2.0, y: BLOCK_HEIGHT / 2.0 }, origin: origin,
+    pub fn new(id: Id, center: Vector) -> Block {
+        Block { id, upper_left: center - Vector { x: BLOCK_WIDTH / 2.0, y: BLOCK_HEIGHT / 2.0 },
                 next: HashMap::new(), prev: HashMap::new(), selected: false }
     }
     pub fn select(&mut self) { self.selected = true; }
@@ -31,7 +30,7 @@ impl Block {
     pub fn get_rect_html(&self) -> Html {
         let style = self.get_style();
         html!{
-            <rect x={(self.upper_left.x).to_string()} y={(self.upper_left.y).to_string()}
+            <rect x={self.upper_left.x.to_string()} y={self.upper_left.y.to_string()}
             rx="20" ry="20" width={BLOCK_WIDTH.to_string()} height={BLOCK_HEIGHT.to_string()}
             style={style}/>
         }
@@ -39,14 +38,14 @@ impl Block {
 
     pub fn get_control_point_out(&self) -> arrow::ControlPoint {
         arrow::ControlPoint {
-            point: self.upper_left.clone() + Coords { x: BLOCK_WIDTH, y: BLOCK_HEIGHT / 2.0 },
-            vector: Coords { x: CONTROL_POINT_VECTOR_LENGTH, y: 0.0}
+            point: self.upper_left.clone() + Vector { x: BLOCK_WIDTH, y: BLOCK_HEIGHT / 2.0 },
+            vector: Vector { x: CONTROL_POINT_VECTOR_LENGTH, y: 0.0}
         }
     }
     pub fn get_control_point_in(&self) -> arrow::ControlPoint {
         arrow::ControlPoint {
-            point: self.upper_left.clone() + Coords { x: 0.0, y: BLOCK_HEIGHT / 2.0 },
-            vector: Coords { x: -CONTROL_POINT_VECTOR_LENGTH, y: 0.0 }
+            point: self.upper_left.clone() + Vector { x: 0.0, y: BLOCK_HEIGHT / 2.0 },
+            vector: Vector { x: -CONTROL_POINT_VECTOR_LENGTH, y: 0.0 }
         }
     }
 

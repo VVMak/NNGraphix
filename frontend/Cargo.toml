@@ -10,3 +10,4 @@ yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 log = "0.4.20"
 wasm-logger = "0.2.0"
 derivative = "2.2.0"
+web-sys = "0.3.69"

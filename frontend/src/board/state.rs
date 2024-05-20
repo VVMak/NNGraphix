@@ -2,7 +2,7 @@
 pub enum State {
     Basic,
     DraggingSelection,
-    DraggingBoard, // TODO: https://github.com/VVMak/NNGraphix/issues/10
+    DraggingBoard,
     ArrowCreation,
 }
 
