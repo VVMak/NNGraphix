@@ -27,6 +27,9 @@ impl Block {
     }
     pub fn select(&mut self) { self.selected = true; }
     pub fn deselect(&mut self) { self.selected = false; }
+    pub fn is_selected(&self) -> bool{
+        return self.selected;
+    }
     pub fn get_rect_html(&self) -> Html {
         let style = self.get_style();
         html!{
@@ -35,7 +38,12 @@ impl Block {
             style={style}/>
         }
     }
-
+    pub fn get_block_width() -> f64 {
+        return BLOCK_WIDTH;
+    }
+    pub fn get_block_height() -> f64 {
+        return BLOCK_HEIGHT;
+    }
     pub fn get_control_point_out(&self) -> arrow::ControlPoint {
         arrow::ControlPoint {
             point: self.upper_left.clone() + Vector { x: BLOCK_WIDTH, y: BLOCK_HEIGHT / 2.0 },

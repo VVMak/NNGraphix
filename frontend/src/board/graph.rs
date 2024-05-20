@@ -17,6 +17,9 @@ pub struct Graph {
 }
 
 impl Graph {
+    pub fn get_blocks(&self) -> HashMap<i64, RefCell<Block>> {
+        return self.blocks.clone();
+    }
     fn create_block_html(&self, block: Ref<'_, Block>, scope: &Scope<super::Board>) -> Html {
         let id = block.id.clone();
         let onmousedown: Callback<MouseEvent> = scope.callback(move |e: MouseEvent| {
@@ -34,6 +37,22 @@ impl Graph {
     fn create_arrow_html(&self, arrow: &Arrow) -> Html {
         arrow.create_html(&self.blocks)
     }
+    pub fn draw_selection_rect(&self, corner_one: Vector, corner_two: Vector) -> Html {
+        let top_left = Vector{x: corner_one.x.min(corner_two.x), y: corner_one.y.min(corner_two.y)};
+        let bottom_right = Vector{x: corner_one.x.max(corner_two.x), y: corner_one.y.max(corner_two.y)};
+        let size = bottom_right.clone() - top_left.clone();
+        html! {
+            <svg>
+                <rect x={top_left.clone().x.to_string()}
+                      y={top_left.clone().y.to_string()}
+                      width={size.x.to_string()}
+                      height={size.y.to_string()}
+                      fill-opacity=0.1
+                      stroke-opacity=0.5
+                      style="fill:rgb(0,0,255);stroke-width:1;stroke:blue"/>
+            </svg>
+        }
+    }
     pub fn html(&self, scope: &Scope<super::Board>) -> Html {
         html!{
             <>
@@ -46,7 +65,7 @@ impl Graph {
                 <path d="M 80 0 L 0 0 0 80" fill="none" stroke="gray" stroke-width="1"/>
                 </pattern>
                 </defs> 
-                <rect width="100%" height="100%" x="-1000" y="-1000" fill="url(#grid)" />
+                <rect width="100%" height="100%" x="0" y="0" fill="url(#grid)" />
                 { self.arrows.iter().map(|(_, arrow)| {
                     self.create_arrow_html(arrow)
                 }).collect::<Html>()}
@@ -56,7 +75,6 @@ impl Graph {
             </>
         }
     }
-    
     pub fn create_block(&mut self, vector: Vector) -> tools::Id {
         let id = self.block_id_gen.next().unwrap();
         self.blocks.insert(id, Block::new(id, vector).into());
