@@ -74,7 +74,6 @@ pub fn rectangles_overlap(
 #[derive(PartialEq, Properties)]
 pub struct Props;
 
-#[derive(Default)]
 pub struct Board {
     board_size: Vector,
     origin: Vector,
@@ -111,10 +110,6 @@ impl Board {
         return position * self.board_size.clone() / BASE_BOARD_SIZE + self.origin.clone();
     }
 
-    fn world_space_to_screen_space(&mut self, position: Vector) -> Vector {
-        return (position - self.origin.clone()) / self.board_size.clone() * BASE_BOARD_SIZE;
-    }
-
     fn scale_board(&mut self, scale_value: f64) {
         self.board_size += Vector {
             x: scale_value / SCALING_SPEED,
@@ -122,10 +117,7 @@ impl Board {
         };
         let delta = self.mouse_position.clone() - (self.origin.clone() + get_viewport_size() / 2.0);
         self.origin += delta.clone() / DRAGGING_SPEED;
-        self.mouse_position = self.world_space_to_screen_space(self.mouse_position.clone())
-            * self.board_size.clone()
-            / BASE_BOARD_SIZE
-            + self.origin.clone();
+        self.mouse_position += delta.clone() / DRAGGING_SPEED;
     }
     pub fn draw_selection_rect(&self, corner_one: Vector, corner_two: Vector) -> Html {
         let (top_left, bottom_right) = sort_rectangle_coordinates(corner_one, corner_two);
