@@ -1,12 +1,15 @@
 use super::arrow;
-use arrow::Arrow;
 use super::block;
-use block::Block;
-use super::vector::Vector;
 use super::event::Event;
 use super::tools;
-use std::{cell::{Ref, RefCell, RefMut}, collections::HashMap};
-use yew::{html, Html, html::Scope, prelude::*};
+use super::vector::Vector;
+use arrow::Arrow;
+use block::Block;
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    collections::HashMap,
+};
+use yew::{html, html::Scope, prelude::*, Html};
 
 #[derive(Default)]
 pub struct Graph {
@@ -37,35 +40,9 @@ impl Graph {
     fn create_arrow_html(&self, arrow: &Arrow) -> Html {
         arrow.create_html(&self.blocks)
     }
-    pub fn draw_selection_rect(&self, corner_one: Vector, corner_two: Vector) -> Html {
-        let top_left = Vector{x: corner_one.x.min(corner_two.x), y: corner_one.y.min(corner_two.y)};
-        let bottom_right = Vector{x: corner_one.x.max(corner_two.x), y: corner_one.y.max(corner_two.y)};
-        let size = bottom_right.clone() - top_left.clone();
-        html! {
-            <svg>
-                <rect x={top_left.clone().x.to_string()}
-                      y={top_left.clone().y.to_string()}
-                      width={size.x.to_string()}
-                      height={size.y.to_string()}
-                      fill-opacity=0.1
-                      stroke-opacity=0.5
-                      style="fill:rgb(0,0,255);stroke-width:1;stroke:blue"/>
-            </svg>
-        }
-    }
     pub fn html(&self, scope: &Scope<super::Board>) -> Html {
-        html!{
+        html! {
             <>
-                <defs>
-                <pattern id="smallGrid" width="8" height="8" patternUnits="userSpaceOnUse">
-                <path d="M 8 0 L 0 0 0 8" fill="none" stroke="gray" stroke-width="0.5"/>
-                </pattern>
-                <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
-                <rect width="80" height="80" fill="url(#smallGrid)"/>
-                <path d="M 80 0 L 0 0 0 80" fill="none" stroke="gray" stroke-width="1"/>
-                </pattern>
-                </defs> 
-                <rect width="100%" height="100%" x="0" y="0" fill="url(#grid)" />
                 { self.arrows.iter().map(|(_, arrow)| {
                     self.create_arrow_html(arrow)
                 }).collect::<Html>()}
@@ -86,19 +63,34 @@ impl Graph {
     }
     pub fn create_arrow(&mut self, from: block::Id, to: block::Id) {
         let id = self.arrow_id_gen.next().unwrap();
-        self.arrows.insert(id, Arrow{id, start_id: from, end_id: to});
-        self.blocks.get(&from).map(|x| x.borrow_mut().add_next(to, id));
-        self.blocks.get(&to).map(|x| x.borrow_mut().add_prev(from, id));
+        self.arrows.insert(
+            id,
+            Arrow {
+                id,
+                start_id: from,
+                end_id: to,
+            },
+        );
+        self.blocks
+            .get(&from)
+            .map(|x| x.borrow_mut().add_next(to, id));
+        self.blocks
+            .get(&to)
+            .map(|x| x.borrow_mut().add_prev(from, id));
     }
     fn remove_arrows_for_block(&mut self, id: &block::Id) {
         let block_opt = self.blocks.get(id);
-        if block_opt.is_none() { return }
+        if block_opt.is_none() {
+            return;
+        }
         for (block_id, arrow_id) in block_opt.unwrap().borrow_mut().next.drain() {
-            self.get_block(&block_id).and_then(|mut x| x.remove_prev(id));
+            self.get_block(&block_id)
+                .and_then(|mut x| x.remove_prev(id));
             self.arrows.remove(&arrow_id);
         }
         for (block_id, arrow_id) in block_opt.unwrap().borrow_mut().prev.drain() {
-            self.get_block(&block_id).and_then(|mut x| x.remove_next(id));
+            self.get_block(&block_id)
+                .and_then(|mut x| x.remove_next(id));
             self.arrows.remove(&arrow_id);
         }
     }

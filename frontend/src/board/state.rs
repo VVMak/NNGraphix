@@ -1,10 +1,11 @@
-#[derive(Debug)]
-#[derive(PartialEq)]
+use crate::board::vector::Vector;
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum State {
     Basic,
     DraggingSelection,
     DraggingBoard,
-    RectangleSelection,
+    RectangleSelection(Vector),
     ArrowCreation,
 }
 
