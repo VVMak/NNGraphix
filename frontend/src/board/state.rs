@@ -1,8 +1,11 @@
-#[derive(Debug)]
+use crate::board::vector::Vector;
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum State {
     Basic,
     DraggingSelection,
-    // DraggingBoard, TODO: https://github.com/VVMak/NNGraphix/issues/10
+    DraggingBoard,
+    RectangleSelection(Vector),
     ArrowCreation,
 }
 

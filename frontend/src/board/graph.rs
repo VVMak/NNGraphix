@@ -1,12 +1,15 @@
 use super::arrow;
-use arrow::Arrow;
 use super::block;
-use block::Block;
-use super::coords::Coords;
-use super::message::Msg;
+use super::event::Event;
 use super::tools;
-use std::{cell::{Ref, RefCell, RefMut}, collections::HashMap};
-use yew::{html, Html, html::Scope, prelude::*};
+use super::vector::Vector;
+use arrow::Arrow;
+use block::Block;
+use std::{
+    cell::{Ref, RefCell, RefMut},
+    collections::HashMap,
+};
+use yew::{html, html::Scope, prelude::*, Html};
 
 #[derive(Default)]
 pub struct Graph {
@@ -17,11 +20,14 @@ pub struct Graph {
 }
 
 impl Graph {
+    pub fn get_blocks(&self) -> HashMap<i64, RefCell<Block>> {
+        return self.blocks.clone();
+    }
     fn create_block_html(&self, block: Ref<'_, Block>, scope: &Scope<super::Board>) -> Html {
         let id = block.id.clone();
         let onmousedown: Callback<MouseEvent> = scope.callback(move |e: MouseEvent| {
             e.stop_immediate_propagation();
-            Msg::MouseLeftDownBlock(e, id)
+            Event::MouseDownBlock(e, id)
         });
         html! {
             <g
@@ -35,7 +41,7 @@ impl Graph {
         arrow.create_html(&self.blocks)
     }
     pub fn html(&self, scope: &Scope<super::Board>) -> Html {
-        html!{
+        html! {
             <>
                 { self.arrows.iter().map(|(_, arrow)| {
                     self.create_arrow_html(arrow)
@@ -46,10 +52,9 @@ impl Graph {
             </>
         }
     }
-    
-    pub fn create_block(&mut self, coords: Coords) -> tools::Id {
+    pub fn create_block(&mut self, vector: Vector) -> tools::Id {
         let id = self.block_id_gen.next().unwrap();
-        self.blocks.insert(id, Block::new(id, coords).into());
+        self.blocks.insert(id, Block::new(id, vector).into());
         id
     }
     pub fn remove_block(&mut self, id: &block::Id) {
@@ -58,19 +63,34 @@ impl Graph {
     }
     pub fn create_arrow(&mut self, from: block::Id, to: block::Id) {
         let id = self.arrow_id_gen.next().unwrap();
-        self.arrows.insert(id, Arrow{id, start_id: from, end_id: to});
-        self.blocks.get(&from).map(|x| x.borrow_mut().add_next(to, id));
-        self.blocks.get(&to).map(|x| x.borrow_mut().add_prev(from, id));
+        self.arrows.insert(
+            id,
+            Arrow {
+                id,
+                start_id: from,
+                end_id: to,
+            },
+        );
+        self.blocks
+            .get(&from)
+            .map(|x| x.borrow_mut().add_next(to, id));
+        self.blocks
+            .get(&to)
+            .map(|x| x.borrow_mut().add_prev(from, id));
     }
     fn remove_arrows_for_block(&mut self, id: &block::Id) {
         let block_opt = self.blocks.get(id);
-        if block_opt.is_none() { return }
+        if block_opt.is_none() {
+            return;
+        }
         for (block_id, arrow_id) in block_opt.unwrap().borrow_mut().next.drain() {
-            self.get_block(&block_id).and_then(|mut x| x.remove_prev(id));
+            self.get_block(&block_id)
+                .and_then(|mut x| x.remove_prev(id));
             self.arrows.remove(&arrow_id);
         }
         for (block_id, arrow_id) in block_opt.unwrap().borrow_mut().prev.drain() {
-            self.get_block(&block_id).and_then(|mut x| x.remove_next(id));
+            self.get_block(&block_id)
+                .and_then(|mut x| x.remove_next(id));
             self.arrows.remove(&arrow_id);
         }
     }
