@@ -2,12 +2,12 @@ mod arrow;
 mod block;
 mod event;
 mod graph;
+mod grid;
 mod state;
 mod vector;
 
 use log::info;
 use std::collections::HashSet;
-use web_sys;
 use yew::prelude::*;
 
 use self::block::Block;
@@ -17,28 +17,12 @@ use event::Event;
 use graph::Graph;
 use state::State;
 use vector::Vector;
+use grid::Grid;
 
 const BASE_BOARD_SIZE: f64 = 4000.0;
 const GRID_SIZE: f64 = 80.0;
 const SCALING_SPEED: f64 = 5.0;
 const DRAGGING_SPEED: f64 = 20.0;
-
-pub fn get_viewport_size() -> Vector {
-    Vector {
-        x: web_sys::window()
-            .expect("There should be a window")
-            .inner_width()
-            .expect("The window should have Some width")
-            .as_f64()
-            .expect("The width should be a number"),
-        y: web_sys::window()
-            .expect("There should be a window")
-            .inner_height()
-            .expect("The window should have Some height")
-            .as_f64()
-            .expect("The height should be a number"),
-    }
-}
 
 pub fn sort_rectangle_coordinates(first: Vector, second: Vector) -> (Vector, Vector) {
     let top_left = Vector {
@@ -49,7 +33,7 @@ pub fn sort_rectangle_coordinates(first: Vector, second: Vector) -> (Vector, Vec
         x: first.x.max(second.x),
         y: first.y.max(second.y),
     };
-    return (top_left, bottom_right);
+    (top_left, bottom_right)
 }
 
 pub fn rectangles_overlap(
@@ -68,15 +52,14 @@ pub fn rectangles_overlap(
     if bottom_right_one.y < top_left_two.y || bottom_right_two.y < top_left_one.y {
         return false;
     }
-    return true;
+    true
 }
 
 #[derive(PartialEq, Properties)]
 pub struct Props;
 
 pub struct Board {
-    board_size: Vector,
-    origin: Vector,
+    grid: Grid,
     graph: Graph,
     selected: HashSet<block::Id>,
     state: State,
@@ -100,10 +83,7 @@ impl Board {
     }
 
     fn clear_selection(&mut self) {
-        for block_id in &self.selected {
-            self.graph.get_block(block_id).unwrap().deselect();
-        }
-        self.selected.clear();
+        self.selected.drain().for_each(|block_id| self.graph.get_block(&block_id).unwrap().deselect());
     }
 
     fn screen_space_to_world_space(&mut self, position: Vector) -> Vector {
@@ -119,6 +99,7 @@ impl Board {
         self.origin += delta.clone() / DRAGGING_SPEED;
         self.mouse_position += delta.clone() / DRAGGING_SPEED;
     }
+
     pub fn draw_selection_rect(&self, corner_one: Vector, corner_two: Vector) -> Html {
         let (top_left, bottom_right) = sort_rectangle_coordinates(corner_one, corner_two);
         let size = bottom_right.clone() - top_left.clone();
@@ -159,14 +140,7 @@ impl Component for Board {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Board {
-            board_size: Vector {
-                x: BASE_BOARD_SIZE,
-                y: BASE_BOARD_SIZE,
-            },
-            origin: Vector {
-                x: BASE_BOARD_SIZE / 2.0,
-                y: BASE_BOARD_SIZE / 2.0,
-            },
+            grid: Grid::new(),
             graph: Graph::default(),
             selected: HashSet::<block::Id>::default(),
             state: State::default(),
