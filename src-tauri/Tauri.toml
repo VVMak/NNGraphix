@@ -1,0 +1,26 @@
+identifier = "com.nngraphix.dev"
+
+[build]
+before-build-command = "cd frontend && LIBTORCH_USE_PYTORCH=1 LIBTORCH_BYPASS_VERSION_CHECK=2.7.1 trunk build"
+before-dev-command = "cd frontend && LIBTORCH_USE_PYTORCH=1 LIBTORCH_BYPASS_VERSION_CHECK=2.7.1 trunk serve"
+dev-url = "http://127.0.0.1:8080"
+frontend-dist = "../frontend/dist"
+
+[bundle]
+active = true
+category = "DeveloperTool"
+icon = [
+  "icons/32x32.png",
+  "icons/128x128.png",
+  "icons/128x128@2x.png",
+  "icons/icon.icns",
+  "icons/icon.ico",
+  "icons/icon.png",
+]
+
+[[app.windows]]
+fullscreen = false
+height = 600
+resizable = true
+title = "NNGraphix"
+width = 800

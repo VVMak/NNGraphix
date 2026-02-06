@@ -1,12 +1,12 @@
 use yew::prelude::*;
 
-mod board;
+mod editor;
 mod tools;
 
 #[function_component(App)]
 fn app() -> Html {
     html! {
-        <board::Board />
+        <editor::Editor />
     }
 }
 
