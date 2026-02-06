@@ -164,7 +164,9 @@ impl Component for Editor {
                 }
                 _ => false,
             }
-            Event::BoardEvent(board::Event::BlockEvent(board::block::Event::MouseDown(e, id))) => match &mut self.board {
+            Event::BoardEvent(board::Event::BlockEvent(board::block::Event::MouseDown(e, id))) => match e.button() {
+                // left button click
+                0 => match &mut self.board {
                     board::State::ArrowCreation(stages) => match stages {
                         board::state::arrow_creation::StateStages::Start(s) => {
                             let new_s = s.clone().finish(id).to_states_enum();
@@ -185,7 +187,20 @@ impl Component for Editor {
                         true
                     }
                     _ => false,
-            },
+                },
+                1 => {
+                    // middle button click
+                    match &mut self.viewbox {
+                        viewbox::State::Basic(s) => {
+                            let new_s = s.clone().drag().to_states_enum();
+                            self.viewbox.set_new_state(new_s);
+                        }
+                        viewbox::State::Dragged(_) => { log::warn!("dragged state on middle click mouse hold"); }
+                    };
+                    false
+                }
+                _ => false,
+            }
             Event::KeyDown(event) => {
                 match &mut self.board {
                 board::state::State::Basic(s) => {
