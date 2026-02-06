@@ -56,7 +56,8 @@ impl Component for Editor {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Event::CursorMove{new_value} => {
-                let delta = self.cursor.update(new_value);
+                let old_value = self.cursor.update(new_value);
+                let delta = self.viewbox.to_board_coords(new_value) - self.viewbox.to_board_coords(old_value);
                 match &mut self.viewbox {
                     viewbox::State::Dragged(s) => {
                         s.move_box(-delta);
