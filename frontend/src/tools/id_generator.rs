@@ -1,12 +1,12 @@
 pub type Id = i64;
 
 // for now it's stupid and now async- or thread- safe
-#[derive(Default)]
-pub struct IdGenerator {
+#[derive(Default, Clone, Copy, Debug)]
+pub struct IdGen {
     last: Id,
 }
 
-impl Iterator for IdGenerator {
+impl Iterator for IdGen {
     type Item = Id;
 
     fn next(&mut self) -> Option<Self::Item> {
