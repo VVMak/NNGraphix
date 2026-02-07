@@ -100,6 +100,7 @@ impl Component for Editor {
                                 self.board.set_new_state(new_s);
                                 true
                             }
+                            _ => false,
                         }
                         board::State::Basic(_) => false,
                         board::State::PredragBlocks(s) => {
@@ -165,27 +166,46 @@ impl Component for Editor {
                 }
                 _ => false,
             }
-            Event::BoardEvent(board::Event::BlockEvent(board::block::Event::MouseDown(e, id))) => match &mut self.board {
-                board::State::ArrowCreation(stages) => match stages {
-                    board::state::arrow_creation::StateStages::Start(s) => {
-                        let new_s = s.clone().finish(id).to_states_enum();
+            Event::BoardEvent(board::Event::BlockEvent(block_event)) => match block_event {
+                board::block::Event::MouseDown(e, id) => match &mut self.board {
+                    board::State::ArrowCreation(stages) => match stages {
+                        board::state::arrow_creation::StateStages::Preview(s) => {
+                            let new_s = s.clone().finish().to_states_enum();
+                            self.board.set_new_state(new_s);
+                            true
+                        }
+                        board::state::arrow_creation::StateStages::Finish(_) => {
+                            log::warn!("block click on finish arrow creation");
+                            false
+                        }
+                        _ => false,
+                    }
+                    board::State::Basic(s) => {
+                        let new_s = s.clone().hold_block(id, match e.ctrl_key() {
+                            false => board::state::predrag::SelectionModifier::None,
+                            true => board::state::predrag::SelectionModifier::Add,
+                        }).to_states_enum();
                         self.board.set_new_state(new_s);
                         true
                     }
-                    board::state::arrow_creation::StateStages::Finish(_) => {
-                        log::warn!("block click on finish arrow creation");
-                        false
+                    _ => false,
+                }
+                board::block::Event::MouseOver(id) => match &mut self.board {
+                    board::State::ArrowCreation(board::state::arrow_creation::StateStages::Start(s)) => {
+                        let new_s = s.clone().preview(id).to_states_enum();
+                        self.board.set_new_state(new_s);
+                        true
                     }
+                    _ => false,
                 }
-                board::State::Basic(s) => {
-                    let new_s = s.clone().hold_block(id, match e.ctrl_key() {
-                        false => board::state::predrag::SelectionModifier::None,
-                        true => board::state::predrag::SelectionModifier::Add,
-                    }).to_states_enum();
-                    self.board.set_new_state(new_s);
-                    true
+                board::block::Event::MouseLeave => match &mut self.board {
+                    board::State::ArrowCreation(board::state::arrow_creation::StateStages::Preview(s)) => {
+                        let new_s = s.clone().cancel_preview().to_states_enum();
+                        self.board.set_new_state(new_s);
+                        true
+                    }
+                    _ => false,
                 }
-                _ => false,
             }
             Event::KeyDown(event) => {
                 match &mut self.board {
@@ -225,10 +245,17 @@ impl Component for Editor {
                             board::state::arrow_creation::StateStages::Start(s) => {
                                 let new_s = s.clone().cancel().to_states_enum();
                                 self.board.set_new_state(new_s);
+                                false
+                            }
+                            board::state::arrow_creation::StateStages::Preview(s) => {
+                                let new_s = s.clone().cancel_creation().to_states_enum();
+                                self.board.set_new_state(new_s);
+                                true
                             }
                             board::state::arrow_creation::StateStages::Finish(s) => {
                                 let new_s = s.clone().cancel().to_states_enum();
                                 self.board.set_new_state(new_s);
+                                true
                             }
                         };
                         false

@@ -4,6 +4,7 @@ pub(super) mod vertex_data;
 
 pub use state::StateDump;
 pub use event::Event;
+use yew::MouseEvent;
 
 use crate::editor::board::block::state::StateInterface;
 
@@ -25,21 +26,38 @@ impl Block {
         let block_color = if selected { "rgb(100, 100, 255)" } else { "red" };
         format!("fill:{block_color};fill-opacity:0.5;{stroke}")
     }
-    pub fn html(&self, props: &Props) -> yew::Html {
-        let style = self.get_style(props.state.selected());
+    fn make_mousedown_callback(props: &Props) -> impl Fn(MouseEvent) {
         let scope = props.scope.clone();
         let id = props.state.id().clone();
-        let onmousedown = move |e: yew::MouseEvent| {
+        move |e: yew::MouseEvent| {
             if e.button() != 0 {
                 // not left click
                 return;
             }
             e.stop_immediate_propagation();
             scope.emit(Event::MouseDown(e, id))
-        };
+        }
+    }
+    fn make_mouseover_callback(props: &Props) -> impl Fn(MouseEvent) {
+        let scope = props.scope.clone();
+        let id = props.state.id().clone();
+        move |_: yew::MouseEvent| {
+            scope.emit(Event::MouseOver(id));
+        }
+    }
+    fn make_mouseleave_callback(props: &Props) -> impl Fn(MouseEvent) {
+        let scope = props.scope.clone();
+        move |_: yew::MouseEvent| {
+            scope.emit(Event::MouseLeave);
+        }
+    }
+    pub fn html(&self, props: &Props) -> yew::Html {
+        let style = self.get_style(props.state.selected());
         yew::html! {
             <g
-            onmousedown={onmousedown}
+            onmousedown={Self::make_mousedown_callback(props)}
+            onmouseover={Self::make_mouseover_callback(props)}
+            onmouseleave={Self::make_mouseleave_callback(props)}
             >
                 <rect x={props.state.top_left().x.to_string()} y={props.state.top_left().y.to_string()}
                 rx="20" ry="20" width={props.state.size().x.to_string()} height={props.state.size().y.to_string()}

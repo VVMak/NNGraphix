@@ -44,7 +44,7 @@ impl State {
         self.graph()
             .iter_edges()
             .map(|edge|
-                crate::editor::board::arrow::Arrow::from(edge, self.graph())
+                crate::editor::board::arrow::Arrow::from(edge, self.graph(), false)
                     .html()
             )
             .collect::<yew::Html>()
