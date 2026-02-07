@@ -1,9 +1,9 @@
-pub mod state;
 pub mod event;
+pub mod state;
 pub(super) mod vertex_data;
 
-pub use state::StateDump;
 pub use event::Event;
+pub use state::StateDump;
 use yew::MouseEvent;
 
 use crate::editor::board::block::state::StateInterface;
@@ -23,7 +23,11 @@ impl Block {
     fn get_style(&self, selected: bool) -> String {
         let stroke_color = if selected { "blue" } else { "black" };
         let stroke = format!("stroke:{stroke_color};stroke-width:5; stroke-opacity: 0.5");
-        let block_color = if selected { "rgb(100, 100, 255)" } else { "red" };
+        let block_color = if selected {
+            "rgb(100, 100, 255)"
+        } else {
+            "red"
+        };
         format!("fill:{block_color};fill-opacity:0.5;{stroke}")
     }
     fn make_mousedown_callback(props: &Props) -> impl Fn(MouseEvent) {
@@ -59,8 +63,8 @@ impl Block {
             onmouseover={Self::make_mouseover_callback(props)}
             onmouseleave={Self::make_mouseleave_callback(props)}
             >
-                <rect x={props.state.top_left().x.to_string()} y={props.state.top_left().y.to_string()}
-                rx="20" ry="20" width={props.state.size().x.to_string()} height={props.state.size().y.to_string()}
+                <rect x={props.state.top_left().x().to_string()} y={props.state.top_left().y().to_string()}
+                rx="20" ry="20" width={props.state.size().x().to_string()} height={props.state.size().y().to_string()}
                 style={style}/>
             </g>
         }

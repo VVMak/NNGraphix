@@ -1,13 +1,16 @@
-use glam::DVec2;
+use crate::editor::types::BoardCoords;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct VertexData {
-    pub(super) center: DVec2,
+    pub(super) center: BoardCoords,
     pub(super) selected: bool,
 }
 
 impl VertexData {
-    pub fn from(center: DVec2) -> Self {
-        Self { center, selected: false }
+    pub fn from(center: BoardCoords) -> Self {
+        Self {
+            center,
+            selected: false,
+        }
     }
 }

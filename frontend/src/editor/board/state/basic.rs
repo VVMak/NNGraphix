@@ -1,4 +1,4 @@
-use crate::editor::board::block::state::StateInterface;
+use crate::editor::{board::block::state::StateInterface, types::BoardCoords};
 use crate::tools::viewable::Viewable;
 
 use super::{block, internal, states::*};
@@ -32,7 +32,11 @@ impl State {
         super::State::Basic(self)
     }
 
-    pub fn hold_block(mut self, block_id: block::Id, modifier: SelectionModifier) -> HoldBlockResult {
+    pub fn hold_block(
+        mut self,
+        block_id: block::Id,
+        modifier: SelectionModifier,
+    ) -> HoldBlockResult {
         if !self.0.block_mut(block_id).selected() {
             if modifier == SelectionModifier::None {
                 self.0.clear_selection();
@@ -49,9 +53,12 @@ impl State {
     }
 
     fn can_create_arrow(&self) -> bool {
-        self.0.graph().iter_vertices().any(|block| block::state::State::from(block).selected())
+        self.0
+            .graph()
+            .iter_vertices()
+            .any(|block| block::state::State::from(block).selected())
     }
-    
+
     fn create_arrow(self) -> arrow_creation::start::State {
         arrow_creation::start::State::from(self.0)
     }
@@ -64,19 +71,24 @@ impl State {
         }
     }
 
-    pub fn create_block(&mut self, pos: glam::DVec2) -> block::Id {
+    pub fn create_block(&mut self, pos: BoardCoords) -> block::Id {
         self.0.clear_selection();
-        let mut entry = block::state::State::from(self.0.graph_mut().new_vertex(VertexData::from(pos)));
+        let mut entry =
+            block::state::State::from(self.0.graph_mut().new_vertex(VertexData::from(pos)));
         entry.set_selected(true);
         entry.id()
     }
 
-    pub fn start_rectangle_selection(self, start: glam::DVec2) -> rectangle_selection::State {
+    pub fn start_rectangle_selection(self, start: BoardCoords) -> rectangle_selection::State {
         rectangle_selection::State::from(self.0, start.clone(), start)
     }
 
     pub fn remove_selected_blocks(&mut self) {
-        let selected = self.0.iter_selected().map(|block| block.id()).collect::<Vec<_>>();
+        let selected = self
+            .0
+            .iter_selected()
+            .map(|block| block.id())
+            .collect::<Vec<_>>();
         selected.into_iter().for_each(|block_id| {
             self.0.graph_mut().remove_vertex(block_id);
         });
@@ -101,3 +113,4 @@ impl std::fmt::Display for State {
         write!(f, "Basic")
     }
 }
+

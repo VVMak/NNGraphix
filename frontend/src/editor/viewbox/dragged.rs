@@ -1,7 +1,9 @@
+use crate::editor::types::{AppCoords, BoardCoords};
+
 use super::common::Viewbox;
 
 #[derive(Debug, Clone, Default, PartialEq)]
-pub struct State (Viewbox);
+pub struct State(Viewbox);
 
 impl State {
     pub(super) fn from(viewbox: Viewbox) -> Self {
@@ -16,12 +18,12 @@ impl State {
         super::basic::State::from(self.0)
     }
 
-    pub fn scale(&mut self, cursor: glam::DVec2, factor: f64) -> &mut Self {
+    pub fn scale(&mut self, cursor: AppCoords, factor: f64) -> &mut Self {
         self.0.scale(cursor, factor);
         self
     }
 
-    pub fn move_box(&mut self, delta: glam::DVec2) -> &mut Self {
+    pub fn move_box(&mut self, delta: BoardCoords) -> &mut Self {
         self.0.move_box(delta);
         self
     }
@@ -31,10 +33,10 @@ impl State {
     }
 
     #[allow(unused)]
-    pub fn to_app_coords(&self, board_coords: glam::DVec2) -> glam::DVec2 {
+    pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
         self.0.to_app_coords(board_coords)
     }
-    pub fn to_board_coords(&self, app_coords: glam::DVec2) -> glam::DVec2 {
+    pub fn to_board_coords(&self, app_coords: AppCoords) -> BoardCoords {
         self.0.to_board_coords(app_coords)
     }
 }

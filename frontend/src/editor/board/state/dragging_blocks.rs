@@ -1,4 +1,4 @@
-use crate::editor::board::block::state::StateInterface;
+use crate::editor::{board::block::state::StateInterface, types::BoardCoords};
 use crate::tools::viewable::Viewable;
 
 use super::{internal, states::*};
@@ -15,8 +15,10 @@ impl State {
         super::State::DraggingBlocks(self)
     }
 
-    pub fn move_selected(mut self, delta: glam::DVec2) -> Self {
-        self.0.iter_selected().for_each(|mut block| block.move_block(delta));
+    pub fn move_selected(mut self, delta: BoardCoords) -> Self {
+        self.0
+            .iter_selected()
+            .for_each(|mut block| block.move_block(delta));
         self
     }
     pub fn stop(self) -> basic::State {
@@ -37,3 +39,4 @@ impl std::fmt::Display for State {
         write!(f, "Dragging blocks")
     }
 }
+

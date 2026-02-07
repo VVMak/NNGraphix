@@ -1,12 +1,12 @@
 mod board;
 mod cursor;
 mod event;
+mod types;
 mod viewbox;
 
+use crate::{editor::types::AppCoords, tools::viewable::Viewable};
 use event::Event;
-use glam::DVec2;
 use yew::prelude::*;
-use crate::tools::viewable::Viewable;
 
 #[derive(PartialEq, Properties)]
 pub struct Props;
@@ -23,17 +23,12 @@ impl Component for Editor {
     type Properties = Props;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        return Self::default()
+        return Self::default();
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let onmousemove = ctx.link().callback(|e: MouseEvent| {
-            Event::CursorMove {
-                new_value: DVec2 {
-                    x: e.client_x() as f64,
-                    y: e.client_y() as f64,
-                }
-            }
+        let onmousemove = ctx.link().callback(|e: MouseEvent| Event::CursorMove {
+            new_pos: AppCoords::new(e.client_x() as f64, e.client_y() as f64),
         });
         let onkeydown = ctx.link().callback(Event::KeyDown);
         let onmouseup = ctx.link().callback(Event::MouseUp);
@@ -55,35 +50,37 @@ impl Component for Editor {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Event::CursorMove{new_value} => {
-                let old_value = self.cursor.update(new_value);
-                let delta = self.viewbox.to_board_coords(new_value) - self.viewbox.to_board_coords(old_value);
+            Event::CursorMove { new_pos } => {
+                let old_value = self.cursor.update(new_pos);
+                let delta =
+                    self.viewbox.to_board_coords(new_pos) - self.viewbox.to_board_coords(old_value);
                 match &mut self.viewbox {
                     viewbox::State::Dragged(s) => {
                         s.move_box(-delta);
                         true
                     }
-                    viewbox::State::Basic(_) => {
-                        match &mut self.board {
-                            board::State::PredragBlocks(s) => {
-                                let new_s = s.clone().drag_blocks().to_states_enum();
-                                self.board.set_new_state(new_s);
-                                ctx.link().send_message(Event::CursorMove { new_value });
-                                false
-                            }
-                            board::State::DraggingBlocks(s) => {
-                                let new_s = s.clone().move_selected(delta).to_states_enum();
-                                self.board.set_new_state(new_s);
-                                true
-                            }
-                            board::State::RectangleSelection(s) => {
-                                let new_s = s.clone().move_end(self.viewbox.to_board_coords( new_value)).to_states_enum();
-                                self.board.set_new_state(new_s);
-                                true
-                            }
-                            _ => false,
+                    viewbox::State::Basic(_) => match &mut self.board {
+                        board::State::PredragBlocks(s) => {
+                            let new_s = s.clone().drag_blocks().to_states_enum();
+                            self.board.set_new_state(new_s);
+                            ctx.link().send_message(Event::CursorMove { new_pos });
+                            false
                         }
-                    }
+                        board::State::DraggingBlocks(s) => {
+                            let new_s = s.clone().move_selected(delta).to_states_enum();
+                            self.board.set_new_state(new_s);
+                            true
+                        }
+                        board::State::RectangleSelection(s) => {
+                            let new_s = s
+                                .clone()
+                                .move_end(self.viewbox.to_board_coords(new_pos))
+                                .to_states_enum();
+                            self.board.set_new_state(new_s);
+                            true
+                        }
+                        _ => false,
+                    },
                 }
             }
             Event::MouseUp(e) => match e.button() {
@@ -101,7 +98,7 @@ impl Component for Editor {
                                 true
                             }
                             _ => false,
-                        }
+                        },
                         board::State::Basic(_) => false,
                         board::State::PredragBlocks(s) => {
                             let new_s = s.clone().deselect().to_states_enum();
@@ -135,7 +132,7 @@ impl Component for Editor {
                     }
                 }
                 _ => false,
-            }
+            },
             Event::MouseDown(e) => match e.button() {
                 0 => {
                     // left button click
@@ -144,7 +141,13 @@ impl Component for Editor {
                             log::debug!("ignore board left click on arrow creation");
                         }
                         board::State::Basic(s) => {
-                            let new_s = s.clear_selection().clone().start_rectangle_selection(self.viewbox.to_board_coords(self.cursor.get())).to_states_enum();
+                            let new_s = s
+                                .clear_selection()
+                                .clone()
+                                .start_rectangle_selection(
+                                    self.viewbox.to_board_coords(self.cursor.get()),
+                                )
+                                .to_states_enum();
                             self.board.set_new_state(new_s);
                         }
                         _ => {
@@ -160,12 +163,14 @@ impl Component for Editor {
                             let new_s = s.clone().drag().to_states_enum();
                             self.viewbox.set_new_state(new_s);
                         }
-                        viewbox::State::Dragged(_) => { log::warn!("dragged state on middle click mouse hold"); }
+                        viewbox::State::Dragged(_) => {
+                            log::warn!("dragged state on middle click mouse hold");
+                        }
                     };
                     false
                 }
                 _ => false,
-            }
+            },
             Event::BoardEvent(board::Event::BlockEvent(block_event)) => match block_event {
                 board::block::Event::MouseDown(e, id) => match &mut self.board {
                     board::State::ArrowCreation(stages) => match stages {
@@ -179,38 +184,46 @@ impl Component for Editor {
                             false
                         }
                         _ => false,
-                    }
+                    },
                     board::State::Basic(s) => {
-                        let new_s = s.clone().hold_block(id, match e.ctrl_key() {
-                            false => board::state::predrag::SelectionModifier::None,
-                            true => board::state::predrag::SelectionModifier::Add,
-                        }).to_states_enum();
+                        let new_s = s
+                            .clone()
+                            .hold_block(
+                                id,
+                                match e.ctrl_key() {
+                                    false => board::state::predrag::SelectionModifier::None,
+                                    true => board::state::predrag::SelectionModifier::Add,
+                                },
+                            )
+                            .to_states_enum();
                         self.board.set_new_state(new_s);
                         true
                     }
                     _ => false,
-                }
+                },
                 board::block::Event::MouseOver(id) => match &mut self.board {
-                    board::State::ArrowCreation(board::state::arrow_creation::StateStages::Start(s)) => {
+                    board::State::ArrowCreation(
+                        board::state::arrow_creation::StateStages::Start(s),
+                    ) => {
                         let new_s = s.clone().preview(id).to_states_enum();
                         self.board.set_new_state(new_s);
                         true
                     }
                     _ => false,
-                }
+                },
                 board::block::Event::MouseLeave => match &mut self.board {
-                    board::State::ArrowCreation(board::state::arrow_creation::StateStages::Preview(s)) => {
+                    board::State::ArrowCreation(
+                        board::state::arrow_creation::StateStages::Preview(s),
+                    ) => {
                         let new_s = s.clone().cancel_preview().to_states_enum();
                         self.board.set_new_state(new_s);
                         true
                     }
                     _ => false,
-                }
-            }
-            Event::KeyDown(event) => {
-                match &mut self.board {
-                board::state::State::Basic(s) => {
-                    match event.key().as_str() {
+                },
+            },
+            Event::KeyDown(event) => match &mut self.board {
+                board::state::State::Basic(s) => match event.key().as_str() {
                     "a" => {
                         let result = s.clone().try_create_arrow();
                         match result {
@@ -231,13 +244,12 @@ impl Component for Editor {
                     "Delete" => {
                         s.remove_selected_blocks();
                         true
-                    },
+                    }
                     "Escape" => {
                         s.clear_selection();
                         true
                     }
                     _ => false,
-                    }
                 },
                 board::State::ArrowCreation(s) => match event.key().as_str() {
                     "Escape" => {
@@ -263,8 +275,11 @@ impl Component for Editor {
                     _ => false,
                 },
                 _ => false,
-            }},
-            Event::MouseWheel(event) => {self.viewbox.scale(self.cursor.get(), event.delta_y()); true}
+            },
+            Event::MouseWheel(event) => {
+                self.viewbox.scale(self.cursor.get(), event.delta_y());
+                true
+            }
         }
     }
 }
