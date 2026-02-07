@@ -30,6 +30,10 @@ impl Block {
         let scope = props.scope.clone();
         let id = props.state.id().clone();
         let onmousedown = move |e: yew::MouseEvent| {
+            if e.button() != 0 {
+                // not left click
+                return;
+            }
             e.stop_immediate_propagation();
             scope.emit(Event::MouseDown(e, id))
         };
