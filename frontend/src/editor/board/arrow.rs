@@ -11,13 +11,15 @@ use crate::editor::board::graph;
 pub struct Arrow<'a> {
     start: block::state::State<'a>,
     end: block::state::State<'a>,
+    preview: bool,
 }
 
 impl<'a> Arrow<'a> {
-    pub fn from(edge: graph::Edge, vertices: &'a graph::Graph<block::vertex_data::VertexData>) -> Self {
+    pub fn from(edge: graph::Edge, vertices: &'a graph::Graph<block::vertex_data::VertexData>, preview: bool) -> Self {
         Self {
             start: block::state::State::from(vertices.entry(edge.0).unwrap()),
             end: block::state::State::from(vertices.entry(edge.1).unwrap()),
+            preview: preview,
         }
     }
 
@@ -43,10 +45,14 @@ impl<'a> Arrow<'a> {
                 display_coords_path(&(end.point.clone() + end.vector.clone())),
                 display_coords_path(&end.point),
         );
+        let color = if self.preview {"grey"} else {"black"};
         html!{
             <>
-            <path d={path_content} stroke="black" fill="transparent"/>
-            {triangle_html(&end)}
+            <path
+                d={path_content}
+                stroke={color}
+                fill="transparent"/>
+            {triangle_html(&end, color.to_string())}
             </>
         }
     }
@@ -75,7 +81,7 @@ fn display_coords_poly(coords: &DVec2) -> String {
 const TR_DX: f64 = 7.0;
 const TR_DY: f64 = TR_DX * 0.5774;
 
-fn triangle_html(cp: &ControlPoint) -> Html {
+fn triangle_html(cp: &ControlPoint, color: String) -> Html {
     // TODO: this triangle ending works only with horizontal and long enough 'end' control vector
     let polygon_points = format!("{} {} {}",
             display_coords_poly(&(cp.point.clone() - DVec2 { x: TR_DX, y: TR_DY })),
@@ -83,6 +89,10 @@ fn triangle_html(cp: &ControlPoint) -> Html {
             display_coords_poly(&cp.point),
     );
     html!{
-        <polygon points={polygon_points} fill="black" stroke-linejoin="round"/>
+        <polygon
+            points={polygon_points}
+            fill={color}
+            stroke-linejoin="round"
+        />
     }
 }

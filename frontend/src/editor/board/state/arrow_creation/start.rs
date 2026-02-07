@@ -13,8 +13,8 @@ impl State {
         basic::State::from(self.0)
     }
 
-    pub fn finish(self, end_block: block::Id) -> arrow_creation::finish::State {
-        arrow_creation::finish::State::from(self.0, end_block)
+    pub fn preview(self, end_block: block::Id) -> arrow_creation::preview::State {
+        arrow_creation::preview::State::from(self.0, end_block)
     }
 
     pub fn to_states_enum(self) -> super::super::State {

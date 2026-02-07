@@ -12,20 +12,20 @@ impl State {
         Self { internal, end_block }
     }
 
-    pub fn commit(mut self) -> basic::State {
-        let end_block = self.end_block.clone();
-        self.internal
-            .iter_selected()
-            .for_each(|mut start| start.entry_mut().add_outgoing(end_block));
-        basic::State::from(self.internal)
+    pub fn finish(self) -> arrow_creation::finish::State {
+        arrow_creation::finish::State::from(self.internal, self.end_block)
     }
 
-    pub fn cancel(self) -> basic::State {
+    pub fn cancel_preview(self) -> arrow_creation::start::State {
+        arrow_creation::start::State::from(self.internal)
+    }
+
+    pub fn cancel_creation(self) -> basic::State {
         basic::State::from(self.internal)
     }
 
     pub fn to_states_enum(self) -> super::super::State {
-        super::super::State::ArrowCreation(super::StateStages::Finish(self))
+        super::super::State::ArrowCreation(super::StateStages::Preview(self))
     }
 }
 
