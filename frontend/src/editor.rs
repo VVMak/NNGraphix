@@ -165,40 +165,25 @@ impl Component for Editor {
                 }
                 _ => false,
             }
-            Event::BoardEvent(board::Event::BlockEvent(board::block::Event::MouseDown(e, id))) => match e.button() {
-                // left button click
-                0 => match &mut self.board {
-                    board::State::ArrowCreation(stages) => match stages {
-                        board::state::arrow_creation::StateStages::Start(s) => {
-                            let new_s = s.clone().finish(id).to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                        board::state::arrow_creation::StateStages::Finish(_) => {
-                            log::warn!("block click on finish arrow creation");
-                            false
-                        }
-                    }
-                    board::State::Basic(s) => {
-                        let new_s = s.clone().hold_block(id, match e.ctrl_key() {
-                            false => board::state::predrag::SelectionModifier::None,
-                            true => board::state::predrag::SelectionModifier::Add,
-                        }).to_states_enum();
+            Event::BoardEvent(board::Event::BlockEvent(board::block::Event::MouseDown(e, id))) => match &mut self.board {
+                board::State::ArrowCreation(stages) => match stages {
+                    board::state::arrow_creation::StateStages::Start(s) => {
+                        let new_s = s.clone().finish(id).to_states_enum();
                         self.board.set_new_state(new_s);
                         true
                     }
-                    _ => false,
-                },
-                1 => {
-                    // middle button click
-                    match &mut self.viewbox {
-                        viewbox::State::Basic(s) => {
-                            let new_s = s.clone().drag().to_states_enum();
-                            self.viewbox.set_new_state(new_s);
-                        }
-                        viewbox::State::Dragged(_) => { log::warn!("dragged state on middle click mouse hold"); }
-                    };
-                    false
+                    board::state::arrow_creation::StateStages::Finish(_) => {
+                        log::warn!("block click on finish arrow creation");
+                        false
+                    }
+                }
+                board::State::Basic(s) => {
+                    let new_s = s.clone().hold_block(id, match e.ctrl_key() {
+                        false => board::state::predrag::SelectionModifier::None,
+                        true => board::state::predrag::SelectionModifier::Add,
+                    }).to_states_enum();
+                    self.board.set_new_state(new_s);
+                    true
                 }
                 _ => false,
             }
