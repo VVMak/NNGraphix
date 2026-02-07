@@ -220,7 +220,7 @@ impl Component for Editor {
                         }
                     }
                     "n" => {
-                        s.create_block(self.cursor.get());
+                        s.create_block(self.viewbox.to_board_coords(self.cursor.get()));
                         true
                     }
                     "Delete" => {
