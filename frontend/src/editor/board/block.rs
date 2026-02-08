@@ -30,7 +30,7 @@ impl Block {
         };
         format!("fill:{block_color};fill-opacity:0.5;{stroke}")
     }
-    fn make_mousedown_callback(props: &Props) -> impl Fn(MouseEvent) {
+    fn make_mousedown_callback(props: &Props) -> impl Fn(MouseEvent) + use<> {
         let scope = props.scope.clone();
         let id = props.state.id().clone();
         move |e: yew::MouseEvent| {
@@ -42,14 +42,14 @@ impl Block {
             scope.emit(Event::MouseDown(e, id))
         }
     }
-    fn make_mouseover_callback(props: &Props) -> impl Fn(MouseEvent) {
+    fn make_mouseover_callback(props: &Props) -> impl Fn(MouseEvent) + use<> {
         let scope = props.scope.clone();
         let id = props.state.id().clone();
         move |_: yew::MouseEvent| {
             scope.emit(Event::MouseOver(id));
         }
     }
-    fn make_mouseleave_callback(props: &Props) -> impl Fn(MouseEvent) {
+    fn make_mouseleave_callback(props: &Props) -> impl Fn(MouseEvent) + use<> {
         let scope = props.scope.clone();
         move |_: yew::MouseEvent| {
             scope.emit(Event::MouseLeave);
