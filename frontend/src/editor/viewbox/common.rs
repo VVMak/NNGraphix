@@ -1,4 +1,6 @@
-use crate::editor::types::{AppCoords, BoardCoords, Scale};
+use glam::DVec2;
+
+use crate::editor::types::{AppCoords, BoardCoords};
 
 const SCALES: &[f64] = &[
     0.25, 0.33, 0.5, 0.66, 0.75, 0.9, 1.0, 1.1, 1.2, 1.5, 2.0, 3.0, 4.0,
@@ -36,8 +38,8 @@ impl Viewbox {
                 .expect("The height should be a number"),
         )
     }
-    fn get_scale(&self) -> Scale {
-        Scale::new(SCALES[self.scale_index], SCALES[self.scale_index])
+    fn get_scale(&self) -> DVec2 {
+        DVec2::new(SCALES[self.scale_index], SCALES[self.scale_index])
     }
     fn board_size(&self) -> BoardCoords {
         self.to_board_coords(Self::get_window_size()) - self.to_board_coords(AppCoords::default())

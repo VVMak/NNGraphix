@@ -2,7 +2,7 @@ use crate::editor::{board::graph::OccupiedVertexEntry, types::BoardCoords};
 
 type BlockId = crate::editor::board::block::Id;
 
-const BLOCK_SIZE: BoardCoords = BoardCoords::new_const(150.0, 150.0);
+const BLOCK_SIZE: BoardCoords = BoardCoords::new(150.0, 150.0);
 
 #[derive(PartialEq, Debug)]
 pub struct State<'a>(pub OccupiedVertexEntry<'a, super::vertex_data::VertexData>);
