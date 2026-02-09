@@ -1,6 +1,6 @@
 use crate::editor::board::block::state::StateInterface;
 use crate::editor::types::BoardCoords;
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 use super::states::*;
 
@@ -109,4 +109,3 @@ impl std::fmt::Display for State {
         )
     }
 }
-

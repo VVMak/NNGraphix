@@ -4,7 +4,7 @@ mod event;
 mod types;
 mod viewbox;
 
-use crate::{editor::types::AppCoords, tools::viewable::Viewable};
+use crate::{editor::types::AppCoords, utils::viewable::Viewable};
 use event::Event;
 use yew::prelude::*;
 

@@ -1,14 +1,14 @@
 pub mod arrow_creation;
 pub mod basic;
-pub mod internal;
 pub mod dragging_blocks;
+pub mod internal;
 pub mod predrag;
 pub mod rectangle_selection;
 
 pub mod states;
 
 use super::block;
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 #[derive(PartialEq, Clone)]
 pub enum State {
@@ -20,7 +20,9 @@ pub enum State {
 }
 
 impl Default for State {
-    fn default() -> Self { State::Basic(basic::State::default()) }
+    fn default() -> Self {
+        State::Basic(basic::State::default())
+    }
 }
 
 impl State {
@@ -77,3 +79,4 @@ impl std::fmt::Display for State {
         }
     }
 }
+

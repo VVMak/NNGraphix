@@ -1,5 +1,8 @@
 use super::{block, internal, states::*};
-use crate::{editor::board::{arrow::Arrow, block::state::StateInterface}, tools::viewable::Viewable};
+use crate::{
+    editor::board::{arrow::Arrow, block::state::StateInterface},
+    utils::viewable::Viewable,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct State {
@@ -9,7 +12,10 @@ pub struct State {
 
 impl State {
     pub fn from(internal: internal::State, end_block: block::Id) -> Self {
-        Self { internal, end_block }
+        Self {
+            internal,
+            end_block,
+        }
     }
 
     pub fn commit(mut self) -> basic::State {
@@ -33,12 +39,21 @@ impl Viewable<yew::Html> for State {
     type Callback = yew::Callback<crate::editor::board::Event>;
 
     fn view(&self, callback: Self::Callback) -> yew::Html {
-        self.internal.graph()
+        self.internal
+            .graph()
             .iter_vertices()
             .map(|block| block::state::State::from(block))
             .filter(|block| block.selected())
-            .map(|start| Arrow::from((start.entry().id(), self.end_block), self.internal.graph(), true).html())
+            .map(|start| {
+                Arrow::from(
+                    (start.entry().id(), self.end_block),
+                    self.internal.graph(),
+                    true,
+                )
+                .html()
+            })
             .chain(std::iter::once(self.internal.html(callback)))
             .collect::<yew::Html>()
     }
 }
+

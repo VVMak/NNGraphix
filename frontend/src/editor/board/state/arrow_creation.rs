@@ -1,9 +1,9 @@
-pub mod start;
-pub mod preview;
 pub mod finish;
+pub mod preview;
+pub mod start;
 
 use super::{block, internal, states};
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum StateStages {
@@ -26,10 +26,15 @@ impl Viewable<yew::Html> for StateStages {
 
 impl std::fmt::Display for StateStages {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Arrow creation {}", match self {
-            Self::Start(_) => "start",
-            Self::Preview(_) => "preview",
-            Self::Finish(_) => "finish",
-        })
+        write!(
+            f,
+            "Arrow creation {}",
+            match self {
+                Self::Start(_) => "start",
+                Self::Preview(_) => "preview",
+                Self::Finish(_) => "finish",
+            }
+        )
     }
 }
+

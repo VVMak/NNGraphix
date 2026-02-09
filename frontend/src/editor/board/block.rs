@@ -8,7 +8,7 @@ use yew::MouseEvent;
 
 use crate::editor::board::block::state::StateInterface;
 
-pub type Id = crate::tools::Id;
+pub type Id = crate::utils::Id;
 
 #[derive(PartialEq, yew::Properties)]
 pub struct Props {
