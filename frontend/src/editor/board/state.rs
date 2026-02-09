@@ -26,27 +26,6 @@ impl Default for State {
 }
 
 impl State {
-    #[allow(unused)]
-    const GRID_SIZE: f64 = 80.0;
-
-    #[allow(unused)]
-    fn grid_html() -> yew::Html {
-        yew::html! {
-        <>
-        <defs>
-            <pattern id="smallGrid" width={(Self::GRID_SIZE / 10.0).to_string()} height={(Self::GRID_SIZE / 10.0).to_string()} patternUnits="userSpaceOnUse">
-            <path d={format!("M {small_grid_size} 0 L 0 0 0 {small_grid_size}", small_grid_size=Self::GRID_SIZE / 10.0)} fill="none" stroke="gray" stroke-width="0.5"/>
-            </pattern>
-            <pattern id="grid" width={Self::GRID_SIZE.to_string()} height={Self::GRID_SIZE.to_string()} patternUnits="userSpaceOnUse">
-            <rect width={Self::GRID_SIZE.to_string()} height={Self::GRID_SIZE.to_string()} fill="url(#smallGrid)"/>
-            <path d={format!("M {grid_size} 0 L 0 0 0 {grid_size}", grid_size=Self::GRID_SIZE)} fill="none" stroke="gray" stroke-width="1"/>
-            </pattern>
-            </defs>
-            <rect width="100%" height="100%" x="0" y="0" fill="url(#grid)" />
-        </>
-        }
-    }
-
     pub fn set_new_state(&mut self, new_state: Self) -> &mut Self {
         *self = new_state;
         log::debug!("New board state: {}", self);
@@ -79,4 +58,3 @@ impl std::fmt::Display for State {
         }
     }
 }
-

@@ -41,8 +41,8 @@ impl Viewbox {
     fn get_scale(&self) -> DVec2 {
         DVec2::new(SCALES[self.scale_index], SCALES[self.scale_index])
     }
-    fn board_size(&self) -> BoardCoords {
-        self.to_board_coords(Self::get_window_size()) - self.to_board_coords(AppCoords::default())
+    fn viewbox_size(&self) -> BoardCoords {
+        Self::get_window_size() / self.get_scale()
     }
     #[allow(unused)]
     pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
@@ -62,19 +62,25 @@ impl Viewbox {
         let new_cursor_board_pos = self.to_board_coords(cursor);
         self.pos += cursor_board_pos - new_cursor_board_pos;
     }
-    pub fn move_box(&mut self, delta: BoardCoords) {
+    pub fn move_viewbox(&mut self, delta: BoardCoords) {
         self.pos += delta;
     }
-
+    pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
+        (
+            self.pos.x(),
+            self.pos.y(),
+            self.viewbox_size().x(),
+            self.viewbox_size().y(),
+        )
+    }
     pub fn make_viewbox_str(&self) -> String {
-        let board_size = self.board_size();
+        let viewbox_size = self.viewbox_size();
         format!(
             "{box_size_x}, {box_size_y}, {width}, {height}",
             box_size_x = self.pos.x(),
             box_size_y = self.pos.y(),
-            width = board_size.x(),
-            height = board_size.y(),
+            width = viewbox_size.x(),
+            height = viewbox_size.y(),
         )
     }
 }
-

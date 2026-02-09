@@ -30,6 +30,12 @@ impl State {
         }
     }
 
+    pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
+        match self {
+            Self::Basic(s) => s.make_viewbox_tuple(),
+            Self::Dragged(s) => s.make_viewbox_tuple(),
+        }
+    }
     pub fn scale(&mut self, cursor: AppCoords, factor: f64) -> &mut Self {
         match self {
             Self::Basic(s) => {

@@ -23,8 +23,8 @@ impl State {
         self
     }
 
-    pub fn move_box(&mut self, delta: BoardCoords) -> &mut Self {
-        self.0.move_box(delta);
+    pub fn move_viewbox(&mut self, delta: BoardCoords) -> &mut Self {
+        self.0.move_viewbox(delta);
         self
     }
 
@@ -32,6 +32,9 @@ impl State {
         self.0.make_viewbox_str()
     }
 
+    pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
+        self.0.make_viewbox_tuple()
+    }
     #[allow(unused)]
     pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
         self.0.to_app_coords(board_coords)

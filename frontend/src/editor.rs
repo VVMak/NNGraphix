@@ -18,6 +18,29 @@ pub struct Editor {
     cursor: cursor::Cursor,
 }
 
+impl Editor {
+    #[allow(unused)]
+    const GRID_SIZE: f64 = 80.0;
+
+    #[allow(unused)]
+    fn grid_html(x: f64, y: f64, width: f64, height: f64) -> yew::Html {
+        yew::html! {
+        <>
+        <defs>
+            <pattern id="smallGrid" width={(Self::GRID_SIZE / 10.0).to_string()} height={(Self::GRID_SIZE / 10.0).to_string()} patternUnits="userSpaceOnUse">
+            <path d={format!("M {small_grid_size} 0 L 0 0 0 {small_grid_size}", small_grid_size=Self::GRID_SIZE / 10.0)} fill="none" stroke="gray" stroke-width="0.5"/>
+            </pattern>
+            <pattern id="grid" width={Self::GRID_SIZE.to_string()} height={Self::GRID_SIZE.to_string()} patternUnits="userSpaceOnUse">
+            <rect width={Self::GRID_SIZE.to_string()} height={Self::GRID_SIZE.to_string()} fill="url(#smallGrid)"/>
+            <path d={format!("M {grid_size} 0 L 0 0 0 {grid_size}", grid_size=Self::GRID_SIZE)} fill="none" stroke="gray" stroke-width="1"/>
+            </pattern>
+            </defs>
+            <rect width={width.to_string()} height={height.to_string()} x={x.to_string()} y={y.to_string()} fill="url(#grid)" />
+        </>
+        }
+    }
+}
+
 impl Component for Editor {
     type Message = Event;
     type Properties = Props;
@@ -35,6 +58,7 @@ impl Component for Editor {
         let onmousedown = ctx.link().callback(Event::MouseDown);
         let onwheel = ctx.link().callback(Event::MouseWheel);
 
+        let vt = self.viewbox.make_viewbox_tuple();
         html! {
             <div tabindex="0" {onkeydown} {onmousemove} {onmousedown} {onmouseup} {onwheel}>
                 <svg
@@ -42,6 +66,7 @@ impl Component for Editor {
                 height = "100%"
                 viewBox={self.viewbox.make_viewbox_str()}
                 xmlns="http://www.w3.org/2000/svg">
+                    {Self::grid_html(vt.0, vt.1, vt.2, vt.3)}
                     {self.board.view(ctx.link().callback(Event::BoardEvent))}
                 </svg>
             </div>
@@ -56,7 +81,7 @@ impl Component for Editor {
                     self.viewbox.to_board_coords(new_pos) - self.viewbox.to_board_coords(old_value);
                 match &mut self.viewbox {
                     viewbox::State::Dragged(s) => {
-                        s.move_box(-delta);
+                        s.move_viewbox(-delta);
                         true
                     }
                     viewbox::State::Basic(_) => match &mut self.board {
