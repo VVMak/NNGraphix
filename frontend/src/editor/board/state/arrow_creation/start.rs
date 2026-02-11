@@ -1,5 +1,5 @@
 use super::{block, internal, states::*};
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct State(internal::State);
@@ -29,3 +29,4 @@ impl Viewable<yew::Html> for State {
         self.0.html(callback)
     }
 }
+

@@ -1,6 +1,6 @@
 use crate::editor::board::block::state::StateInterface;
 use crate::editor::types::BoardCoords;
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 use super::states::*;
 
@@ -43,7 +43,7 @@ impl State {
         let (top_left, bottom_right) = sort_rectangle_coordinates(self.start, self.end);
         let size = bottom_right.clone() - top_left.clone();
         yew::html! {
-            <svg>
+            <g>
                 <rect x={top_left.clone().x().to_string()}
                       y={top_left.clone().y().to_string()}
                       width={size.x().to_string()}
@@ -51,7 +51,7 @@ impl State {
                       fill-opacity=0.1
                       stroke-opacity=0.5
                       style="fill:rgb(0,0,255);stroke-width:1;stroke:blue"/>
-            </svg>
+            </g>
         }
     }
 }
@@ -109,4 +109,3 @@ impl std::fmt::Display for State {
         )
     }
 }
-

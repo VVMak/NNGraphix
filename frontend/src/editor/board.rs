@@ -4,12 +4,12 @@ mod event;
 mod graph;
 pub mod state;
 
-use yew::{prelude::Context, Properties};
+use yew::{Properties, prelude::Context};
 
 pub use event::Event;
 pub use state::State;
 
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 #[allow(unused)]
 #[derive(PartialEq, Properties)]

@@ -41,9 +41,17 @@ impl Viewbox {
     fn get_scale(&self) -> DVec2 {
         DVec2::new(SCALES[self.scale_index], SCALES[self.scale_index])
     }
-    fn board_size(&self) -> BoardCoords {
-        self.to_board_coords(Self::get_window_size()) - self.to_board_coords(AppCoords::default())
+    fn viewbox_size(&self) -> BoardCoords {
+        Self::get_window_size() / self.get_scale()
     }
+    fn update_scale_index(&mut self, factor: f64) {
+        if factor > 0. && self.scale_index > 0 {
+            self.scale_index -= 1;
+        } else if factor < 0. && self.scale_index < SCALES.len() - 1 {
+            self.scale_index += 1;
+        }
+    }
+
     #[allow(unused)]
     pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
         (board_coords - self.pos) * self.get_scale()
@@ -52,29 +60,34 @@ impl Viewbox {
         app_coords / self.get_scale() + self.pos
     }
 
-    pub fn scale(&mut self, cursor: AppCoords, factor: f64) {
-        let cursor_board_pos = self.to_board_coords(cursor);
-        if factor > 0. && self.scale_index > 0 {
-            self.scale_index -= 1;
-        } else if factor < 0. && self.scale_index < SCALES.len() - 1 {
-            self.scale_index += 1;
-        }
-        let new_cursor_board_pos = self.to_board_coords(cursor);
-        self.pos += cursor_board_pos - new_cursor_board_pos;
+    pub fn zoom_at_cursor(&mut self, cursor_pos: AppCoords, factor: f64) {
+        let old_cursor_board_pos = self.to_board_coords(cursor_pos);
+        self.update_scale_index(factor);
+        let new_cursor_board_pos = self.to_board_coords(cursor_pos);
+        self.pos += old_cursor_board_pos - new_cursor_board_pos;
     }
-    pub fn move_box(&mut self, delta: BoardCoords) {
-        self.pos += delta;
+    pub fn pan(&mut self, old_cursor_pos: AppCoords, new_cursor_pos: AppCoords) {
+        let old_cursor_board_pos = self.to_board_coords(old_cursor_pos);
+        let new_cursor_board_pos = self.to_board_coords(new_cursor_pos);
+        self.pos += old_cursor_board_pos - new_cursor_board_pos;
     }
 
+    pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
+        (
+            self.pos.x(),
+            self.pos.y(),
+            self.viewbox_size().x(),
+            self.viewbox_size().y(),
+        )
+    }
     pub fn make_viewbox_str(&self) -> String {
-        let board_size = self.board_size();
+        let viewbox_size = self.viewbox_size();
         format!(
             "{box_size_x}, {box_size_y}, {width}, {height}",
             box_size_x = self.pos.x(),
             box_size_y = self.pos.y(),
-            width = board_size.x(),
-            height = board_size.y(),
+            width = viewbox_size.x(),
+            height = viewbox_size.y(),
         )
     }
 }
-

@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 mod editor;
-mod tools;
+mod utils;
 
 #[function_component(App)]
 fn app() -> Html {

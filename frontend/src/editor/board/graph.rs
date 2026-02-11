@@ -1,4 +1,4 @@
-use crate::tools;
+use crate::utils;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
@@ -13,14 +13,14 @@ pub use vertex_entry::*;
 
 #[derive(Debug)]
 pub struct Graph<VertexData> {
-    id_gen: tools::IdGen,
+    id_gen: utils::IdGen,
     vertices: BTreeMap<VertexId, RefCell<Vertex<VertexData>>>,
 }
 
 impl<VertexData> Default for Graph<VertexData> {
     fn default() -> Self {
         Self {
-            id_gen: tools::IdGen::default(),
+            id_gen: utils::IdGen::default(),
             vertices: BTreeMap::default(),
         }
     }

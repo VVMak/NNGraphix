@@ -4,22 +4,29 @@ pub type Graph = super::super::graph::Graph<block::vertex_data::VertexData>;
 
 #[derive(Debug, Default, PartialEq, Clone)]
 pub struct State {
-    graph: Graph
+    graph: Graph,
 }
 
 impl State {
     #[allow(unused)]
-    pub fn from(graph: Graph) -> Self { Self { graph } }
+    pub fn from(graph: Graph) -> Self {
+        Self { graph }
+    }
 
-    pub fn graph(&self) -> &Graph { &self.graph }
-    pub fn graph_mut(&mut self) -> &mut Graph { &mut self.graph }
+    pub fn graph(&self) -> &Graph {
+        &self.graph
+    }
+    pub fn graph_mut(&mut self) -> &mut Graph {
+        &mut self.graph
+    }
 
     pub fn block_mut(&mut self, id: block::Id) -> block::state::State<'_> {
         block::state::State::from(self.graph_mut().entry(id).unwrap())
     }
 
     pub fn iter_blocks(&mut self) -> impl Iterator<Item = block::state::State<'_>> {
-        self.graph_mut().iter_vertices()
+        self.graph_mut()
+            .iter_vertices()
             .map(|block| block::state::State::from(block))
     }
 
@@ -28,7 +35,8 @@ impl State {
     }
 
     pub fn clear_selection(&mut self) {
-        self.iter_selected().for_each(|mut block| block.set_selected(false));
+        self.iter_selected()
+            .for_each(|mut block| block.set_selected(false));
     }
 
     pub fn blocks_html(&self, callback: yew::Callback<crate::editor::board::Event>) -> yew::Html {
@@ -43,15 +51,12 @@ impl State {
     pub fn arrows_html(&self) -> yew::Html {
         self.graph()
             .iter_edges()
-            .map(|edge|
-                crate::editor::board::arrow::Arrow::from(edge, self.graph(), false)
-                    .html()
-            )
+            .map(|edge| crate::editor::board::arrow::Arrow::from(edge, self.graph(), false).html())
             .collect::<yew::Html>()
     }
 
     pub fn html(&self, callback: yew::Callback<crate::editor::board::Event>) -> yew::Html {
-        yew::html!{
+        yew::html! {
             <>
                 {self.arrows_html()}
                 {self.blocks_html(callback)}

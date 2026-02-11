@@ -1,5 +1,5 @@
 use crate::editor::{board::block::state::StateInterface, types::BoardCoords};
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 use super::{block, internal, states::*};
 use block::vertex_data::VertexData;
@@ -113,4 +113,3 @@ impl std::fmt::Display for State {
         write!(f, "Basic")
     }
 }
-

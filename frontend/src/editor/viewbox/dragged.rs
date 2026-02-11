@@ -18,13 +18,8 @@ impl State {
         super::basic::State::from(self.0)
     }
 
-    pub fn scale(&mut self, cursor: AppCoords, factor: f64) -> &mut Self {
-        self.0.scale(cursor, factor);
-        self
-    }
-
-    pub fn move_box(&mut self, delta: BoardCoords) -> &mut Self {
-        self.0.move_box(delta);
+    pub fn zoom_at_cursor(&mut self, cursor_pos: AppCoords, factor: f64) -> &mut Self {
+        self.0.zoom_at_cursor(cursor_pos, factor);
         self
     }
 
@@ -32,11 +27,18 @@ impl State {
         self.0.make_viewbox_str()
     }
 
+    pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
+        self.0.make_viewbox_tuple()
+    }
     #[allow(unused)]
     pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
         self.0.to_app_coords(board_coords)
     }
     pub fn to_board_coords(&self, app_coords: AppCoords) -> BoardCoords {
         self.0.to_board_coords(app_coords)
+    }
+    pub fn handle_mouse_move(&mut self, old_pos: AppCoords, new_pos: AppCoords) -> bool {
+        self.0.pan(old_pos, new_pos);
+        true
     }
 }

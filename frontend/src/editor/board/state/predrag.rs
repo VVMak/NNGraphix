@@ -1,5 +1,5 @@
 use crate::editor::board::block::state::StateInterface;
-use crate::tools::viewable::Viewable;
+use crate::utils::viewable::Viewable;
 
 use super::{block, internal, states::*};
 
@@ -17,8 +17,16 @@ pub struct State {
 }
 
 impl State {
-    pub fn from(internal: internal::State, clicked_block: block::Id, selection_modifier: SelectionModifier) -> Self {
-        Self { internal, clicked_block, selection_modifier }
+    pub fn from(
+        internal: internal::State,
+        clicked_block: block::Id,
+        selection_modifier: SelectionModifier,
+    ) -> Self {
+        Self {
+            internal,
+            clicked_block,
+            selection_modifier,
+        }
     }
 
     pub fn to_states_enum(self) -> super::State {
@@ -28,12 +36,16 @@ impl State {
     pub fn deselect(mut self) -> basic::State {
         match self.selection_modifier {
             SelectionModifier::Add => {
-                self.internal.block_mut(self.clicked_block).set_selected(false);
+                self.internal
+                    .block_mut(self.clicked_block)
+                    .set_selected(false);
             }
             SelectionModifier::None => {
                 self.internal.clear_selection();
-                self.internal.block_mut(self.clicked_block).set_selected(true);
-            },
+                self.internal
+                    .block_mut(self.clicked_block)
+                    .set_selected(true);
+            }
         }
         basic::State::from(self.internal)
     }
@@ -56,3 +68,4 @@ impl std::fmt::Display for State {
         write!(f, "Block click, preparing to drag selected")
     }
 }
+

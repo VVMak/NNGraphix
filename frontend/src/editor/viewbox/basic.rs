@@ -18,8 +18,8 @@ impl State {
         super::dragged::State::from(self.0)
     }
 
-    pub fn scale(&mut self, cursor: AppCoords, factor: f64) -> &mut Self {
-        self.0.scale(cursor, factor);
+    pub fn zoom_at_cursor(&mut self, cursor_pos: AppCoords, factor: f64) -> &mut Self {
+        self.0.zoom_at_cursor(cursor_pos, factor);
         self
     }
 
@@ -27,6 +27,9 @@ impl State {
         self.0.make_viewbox_str()
     }
 
+    pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
+        self.0.make_viewbox_tuple()
+    }
     #[allow(unused)]
     pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
         self.0.to_app_coords(board_coords)
