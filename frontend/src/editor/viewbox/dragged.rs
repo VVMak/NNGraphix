@@ -18,13 +18,8 @@ impl State {
         super::basic::State::from(self.0)
     }
 
-    pub fn scale(&mut self, cursor: AppCoords, factor: f64) -> &mut Self {
-        self.0.scale(cursor, factor);
-        self
-    }
-
-    pub fn move_viewbox(&mut self, delta: BoardCoords) -> &mut Self {
-        self.0.move_viewbox(delta);
+    pub fn zoom_at_cursor(&mut self, cursor_pos: AppCoords, factor: f64) -> &mut Self {
+        self.0.zoom_at_cursor(cursor_pos, factor);
         self
     }
 
@@ -41,5 +36,9 @@ impl State {
     }
     pub fn to_board_coords(&self, app_coords: AppCoords) -> BoardCoords {
         self.0.to_board_coords(app_coords)
+    }
+    pub fn handle_mouse_move(&mut self, old_pos: AppCoords, new_pos: AppCoords) -> bool {
+        self.0.pan(old_pos, new_pos);
+        true
     }
 }

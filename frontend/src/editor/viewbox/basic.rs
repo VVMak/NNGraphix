@@ -18,8 +18,8 @@ impl State {
         super::dragged::State::from(self.0)
     }
 
-    pub fn scale(&mut self, cursor: AppCoords, factor: f64) -> &mut Self {
-        self.0.scale(cursor, factor);
+    pub fn zoom_at_cursor(&mut self, cursor_pos: AppCoords, factor: f64) -> &mut Self {
+        self.0.zoom_at_cursor(cursor_pos, factor);
         self
     }
 

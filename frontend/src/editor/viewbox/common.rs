@@ -44,6 +44,14 @@ impl Viewbox {
     fn viewbox_size(&self) -> BoardCoords {
         Self::get_window_size() / self.get_scale()
     }
+    fn update_scale_index(&mut self, factor: f64) {
+        if factor > 0. && self.scale_index > 0 {
+            self.scale_index -= 1;
+        } else if factor < 0. && self.scale_index < SCALES.len() - 1 {
+            self.scale_index += 1;
+        }
+    }
+
     #[allow(unused)]
     pub fn to_app_coords(&self, board_coords: BoardCoords) -> AppCoords {
         (board_coords - self.pos) * self.get_scale()
@@ -52,19 +60,18 @@ impl Viewbox {
         app_coords / self.get_scale() + self.pos
     }
 
-    pub fn scale(&mut self, cursor: AppCoords, factor: f64) {
-        let cursor_board_pos = self.to_board_coords(cursor);
-        if factor > 0. && self.scale_index > 0 {
-            self.scale_index -= 1;
-        } else if factor < 0. && self.scale_index < SCALES.len() - 1 {
-            self.scale_index += 1;
-        }
-        let new_cursor_board_pos = self.to_board_coords(cursor);
-        self.pos += cursor_board_pos - new_cursor_board_pos;
+    pub fn zoom_at_cursor(&mut self, cursor_pos: AppCoords, factor: f64) {
+        let old_cursor_board_pos = self.to_board_coords(cursor_pos);
+        self.update_scale_index(factor);
+        let new_cursor_board_pos = self.to_board_coords(cursor_pos);
+        self.pos += old_cursor_board_pos - new_cursor_board_pos;
     }
-    pub fn move_viewbox(&mut self, delta: BoardCoords) {
-        self.pos += delta;
+    pub fn pan(&mut self, old_cursor_pos: AppCoords, new_cursor_pos: AppCoords) {
+        let old_cursor_board_pos = self.to_board_coords(old_cursor_pos);
+        let new_cursor_board_pos = self.to_board_coords(new_cursor_pos);
+        self.pos += old_cursor_board_pos - new_cursor_board_pos;
     }
+
     pub fn make_viewbox_tuple(&self) -> (f64, f64, f64, f64) {
         (
             self.pos.x(),

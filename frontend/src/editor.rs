@@ -73,238 +73,38 @@ impl Component for Editor {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Event::CursorMove { new_pos } => {
-                let old_value = self.cursor.update(new_pos);
-                let delta =
-                    self.viewbox.to_board_coords(new_pos) - self.viewbox.to_board_coords(old_value);
-                match &mut self.viewbox {
-                    viewbox::State::Dragged(s) => {
-                        s.move_viewbox(-delta);
-                        true
-                    }
-                    viewbox::State::Basic(_) => match &mut self.board {
-                        board::State::PredragBlocks(s) => {
-                            let new_s = s.clone().drag_blocks().to_states_enum();
-                            self.board.set_new_state(new_s);
-                            ctx.link().send_message(Event::CursorMove { new_pos });
-                            false
-                        }
-                        board::State::DraggingBlocks(s) => {
-                            let new_s = s.clone().move_selected(delta).to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                        board::State::RectangleSelection(s) => {
-                            let new_s = s
-                                .clone()
-                                .move_end(self.viewbox.to_board_coords(new_pos))
-                                .to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                        _ => false,
-                    },
-                }
+                let old_pos = self.cursor.update(new_pos);
+                let old_board_pos = self.viewbox.to_board_coords(old_pos);
+                let new_board_pos = self.viewbox.to_board_coords(new_pos);
+                self.viewbox.handle_mouse_move(old_pos, new_pos)
+                    || self.board.handle_mouse_move(old_board_pos, new_board_pos)
             }
             Event::MouseUp(e) => match e.button() {
-                0 => {
-                    // left button click
-                    match &mut self.board {
-                        board::State::ArrowCreation(stage) => match stage {
-                            board::state::arrow_creation::StateStages::Start(_) => {
-                                log::info!("Release left click");
-                                false
-                            }
-                            board::state::arrow_creation::StateStages::Finish(s) => {
-                                let new_s = s.clone().commit().to_states_enum();
-                                self.board.set_new_state(new_s);
-                                true
-                            }
-                            _ => false,
-                        },
-                        board::State::Basic(_) => false,
-                        board::State::PredragBlocks(s) => {
-                            let new_s = s.clone().deselect().to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                        board::State::DraggingBlocks(s) => {
-                            let new_s = s.clone().stop().to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                        board::State::RectangleSelection(s) => {
-                            let new_s = s.clone().finish().to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                    }
-                }
-                1 => {
-                    // middle button click
-                    match &mut self.viewbox {
-                        viewbox::State::Basic(_) => {
-                            log::warn!("basic state on middle click mouse release");
-                            false
-                        }
-                        viewbox::State::Dragged(s) => {
-                            let new_s = s.clone().drop().to_states_enum();
-                            self.viewbox.set_new_state(new_s);
-                            false
-                        }
-                    }
-                }
+                0 => self.board.handle_left_mouse_button_release(), // left button click
+                1 => self.viewbox.handle_middle_mouse_button_release(), // middle button click
                 _ => false,
             },
-            Event::MouseDown(e) => match e.button() {
-                0 => {
-                    // left button click
-                    match &mut self.board {
-                        board::State::ArrowCreation(_) => {
-                            log::debug!("ignore board left click on arrow creation");
-                        }
-                        board::State::Basic(s) => {
-                            let new_s = s
-                                .clear_selection()
-                                .clone()
-                                .start_rectangle_selection(
-                                    self.viewbox.to_board_coords(self.cursor.get()),
-                                )
-                                .to_states_enum();
-                            self.board.set_new_state(new_s);
-                        }
-                        _ => {
-                            log::warn!("board left click on state {}", self.board);
-                        }
-                    };
-                    false
+            Event::MouseDown(e) => {
+                let cursor_pos = self.viewbox.to_board_coords(self.cursor.get());
+                match e.button() {
+                    0 => self.board.handle_left_mouse_button_press(cursor_pos), // left button click
+                    1 => self.viewbox.handle_middle_mouse_button_press(), // middle button click
+                    _ => false,
                 }
-                1 => {
-                    // middle button click
-                    match &mut self.viewbox {
-                        viewbox::State::Basic(s) => {
-                            let new_s = s.clone().drag().to_states_enum();
-                            self.viewbox.set_new_state(new_s);
-                        }
-                        viewbox::State::Dragged(_) => {
-                            log::warn!("dragged state on middle click mouse hold");
-                        }
-                    };
-                    false
-                }
-                _ => false,
-            },
-            Event::BoardEvent(board::Event::BlockEvent(block_event)) => match block_event {
-                board::block::Event::MouseDown(e, id) => match &mut self.board {
-                    board::State::ArrowCreation(stages) => match stages {
-                        board::state::arrow_creation::StateStages::Preview(s) => {
-                            let new_s = s.clone().finish().to_states_enum();
-                            self.board.set_new_state(new_s);
-                            true
-                        }
-                        board::state::arrow_creation::StateStages::Finish(_) => {
-                            log::warn!("block click on finish arrow creation");
-                            false
-                        }
-                        _ => false,
-                    },
-                    board::State::Basic(s) => {
-                        let new_s = s
-                            .clone()
-                            .hold_block(
-                                id,
-                                match e.ctrl_key() {
-                                    false => board::state::predrag::SelectionModifier::None,
-                                    true => board::state::predrag::SelectionModifier::Add,
-                                },
-                            )
-                            .to_states_enum();
-                        self.board.set_new_state(new_s);
-                        true
-                    }
-                    _ => false,
-                },
-                board::block::Event::MouseOver(id) => match &mut self.board {
-                    board::State::ArrowCreation(
-                        board::state::arrow_creation::StateStages::Start(s),
-                    ) => {
-                        let new_s = s.clone().preview(id).to_states_enum();
-                        self.board.set_new_state(new_s);
-                        true
-                    }
-                    _ => false,
-                },
-                board::block::Event::MouseLeave => match &mut self.board {
-                    board::State::ArrowCreation(
-                        board::state::arrow_creation::StateStages::Preview(s),
-                    ) => {
-                        let new_s = s.clone().cancel_preview().to_states_enum();
-                        self.board.set_new_state(new_s);
-                        true
-                    }
-                    _ => false,
-                },
-            },
-            Event::KeyDown(event) => match &mut self.board {
-                board::state::State::Basic(s) => match event.key().as_str() {
-                    "a" => {
-                        let result = s.clone().try_create_arrow();
-                        match result {
-                            Ok(state) => {
-                                self.board.set_new_state(state.to_states_enum());
-                                true
-                            }
-                            Err(state) => {
-                                self.board.set_new_state(state.to_states_enum());
-                                false
-                            }
-                        }
-                    }
-                    "n" => {
-                        s.create_block(self.viewbox.to_board_coords(self.cursor.get()));
-                        true
-                    }
-                    "Delete" => {
-                        s.remove_selected_blocks();
-                        true
-                    }
-                    "Escape" => {
-                        s.clear_selection();
-                        true
-                    }
-                    _ => false,
-                },
-                board::State::ArrowCreation(s) => match event.key().as_str() {
-                    "Escape" => {
-                        match s {
-                            board::state::arrow_creation::StateStages::Start(s) => {
-                                let new_s = s.clone().cancel().to_states_enum();
-                                self.board.set_new_state(new_s);
-                                false
-                            }
-                            board::state::arrow_creation::StateStages::Preview(s) => {
-                                let new_s = s.clone().cancel_creation().to_states_enum();
-                                self.board.set_new_state(new_s);
-                                true
-                            }
-                            board::state::arrow_creation::StateStages::Finish(s) => {
-                                let new_s = s.clone().cancel().to_states_enum();
-                                self.board.set_new_state(new_s);
-                                true
-                            }
-                        };
-                        false
-                    }
-                    _ => false,
-                },
-                _ => false,
-            },
-            Event::MouseWheel(event) => {
-                self.viewbox.scale(self.cursor.get(), event.delta_y());
-                true
             }
+            Event::BoardEvent(board::Event::BlockEvent(block_event)) => {
+                self.board.handle_board_event(block_event)
+            }
+            Event::KeyDown(event) => {
+                let cursor_pos = self.viewbox.to_board_coords(self.cursor.get());
+                self.board.handle_key_down(event, cursor_pos)
+            }
+            Event::MouseWheel(event) => self
+                .viewbox
+                .handle_mouse_wheel(self.cursor.get(), event.delta_y()),
         }
     }
 }
