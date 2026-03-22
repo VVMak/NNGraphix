@@ -1,7 +1,6 @@
 mod arrow;
 pub mod block;
 mod event;
-mod graph;
 pub mod state;
 
 use yew::{prelude::Context, Properties};

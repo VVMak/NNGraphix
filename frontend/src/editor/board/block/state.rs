@@ -1,11 +1,13 @@
-use crate::editor::{board::graph::OccupiedVertexEntry, types::BoardCoords};
+use crate::editor::types::BoardCoords;
+
+use shared::graph::OccupiedVertexEntry;
 
 type BlockId = crate::editor::board::block::Id;
 
 const BLOCK_SIZE: BoardCoords = BoardCoords::new(150.0, 150.0);
 
 #[derive(PartialEq, Debug)]
-pub struct State<'a>(pub OccupiedVertexEntry<'a, super::vertex_data::VertexData>);
+pub struct State<'a>(pub OccupiedVertexEntry<'a, BlockId, super::vertex_data::VertexData>);
 
 #[derive(PartialEq)]
 pub struct StateDump {
@@ -14,16 +16,18 @@ pub struct StateDump {
 }
 
 impl<'a> State<'a> {
-    pub fn from(entry: OccupiedVertexEntry<'a, super::vertex_data::VertexData>) -> Self {
+    pub fn from(entry: OccupiedVertexEntry<'a, BlockId, super::vertex_data::VertexData>) -> Self {
         Self(entry)
     }
 
     #[allow(unused)]
-    pub fn entry(&self) -> &OccupiedVertexEntry<'a, super::vertex_data::VertexData> {
+    pub fn entry(&self) -> &OccupiedVertexEntry<'a, BlockId, super::vertex_data::VertexData> {
         &self.0
     }
 
-    pub fn entry_mut(&mut self) -> &mut OccupiedVertexEntry<'a, super::vertex_data::VertexData> {
+    pub fn entry_mut(
+        &mut self,
+    ) -> &mut OccupiedVertexEntry<'a, BlockId, super::vertex_data::VertexData> {
         &mut self.0
     }
 

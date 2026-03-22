@@ -73,8 +73,7 @@ impl State {
 
     pub fn create_block(&mut self, pos: BoardCoords) -> block::Id {
         self.0.clear_selection();
-        let mut entry =
-            block::state::State::from(self.0.graph_mut().new_vertex(VertexData::from(pos)));
+        let mut entry = block::state::State::from(self.0.new_vertex(VertexData::from(pos)));
         entry.set_selected(true);
         entry.id()
     }
@@ -113,4 +112,3 @@ impl std::fmt::Display for State {
         write!(f, "Basic")
     }
 }
-
