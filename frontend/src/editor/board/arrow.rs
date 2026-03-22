@@ -3,7 +3,10 @@ use yew::{html, Html};
 use super::block;
 use block::state::StateInterface;
 
-use crate::editor::{board::graph, types::BoardCoords};
+use crate::editor::types::BoardCoords;
+use shared::graph;
+
+use super::state::internal::VertexId;
 
 #[derive(Debug)]
 pub struct Arrow<'a> {
@@ -14,8 +17,8 @@ pub struct Arrow<'a> {
 
 impl<'a> Arrow<'a> {
     pub fn from(
-        edge: graph::Edge,
-        vertices: &'a graph::Graph<block::vertex_data::VertexData>,
+        edge: (VertexId, VertexId),
+        vertices: &'a graph::Graph<VertexId, block::vertex_data::VertexData>,
         preview: bool,
     ) -> Self {
         Self {

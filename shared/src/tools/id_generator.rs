@@ -1,7 +1,7 @@
 pub type Id = i64;
 
-// for now it's stupid and now async- or thread- safe
-#[derive(Default, Clone, Copy, Debug)]
+// for now it's stupid and not async- or thread- safe
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IdGen {
     last: Id,
 }
